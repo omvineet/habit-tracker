@@ -1,20 +1,22 @@
+import React, { useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import { HabitsProvider } from './src/HabitsContext';
+import { HomeScreen } from './src/screens/HomeScreen';
+import { HabitDetailScreen } from './src/screens/HabitDetailScreen';
+
+type Route = { screen: 'home' } | { screen: 'detail'; habitId: string };
 
 export default function App() {
+  const [route, setRoute] = useState<Route>({ screen: 'home' });
+
   return (
-    <View style={styles.container}>
-      <Text>Open up App.tsx to start working on your app!</Text>
+    <HabitsProvider>
+      {route.screen === 'home' ? (
+        <HomeScreen onOpenHabit={(habitId) => setRoute({ screen: 'detail', habitId })} />
+      ) : (
+        <HabitDetailScreen habitId={route.habitId} onBack={() => setRoute({ screen: 'home' })} />
+      )}
       <StatusBar style="auto" />
-    </View>
+    </HabitsProvider>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
