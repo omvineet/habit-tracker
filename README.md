@@ -23,39 +23,39 @@ npm run android   # run on a connected device/emulator (needs Android tooling), 
 
 ### Connecting your phone
 
-The fastest way to try the app on your Android phone:
+The fastest way to try the app on your Android phone, no build required:
 
 1. Install **Expo Go** from the Play Store.
 2. On your computer, run `npx expo start` from this folder.
 3. Scan the QR code shown in the terminal with the Expo Go app (phone and computer must be on the same Wi-Fi).
 
-This covers everything except **Quick Log's voice input** (see below) — Expo Go doesn't include the speech-recognition native module, but the rest of the app (adding habits, check-ins, typed Quick Log) works fully.
+Every time you save a file, the app reloads on your phone automatically — this is the normal day-to-day workflow, no deploy step. The one thing it can't do is **Quick Log's voice input**, since Expo Go doesn't include the speech-recognition native module (the typed fallback still works fully).
 
-To get voice input working, or to install the app as its own icon on your phone (no Expo Go needed), you need a **development build**:
+### One-time setup: install the app on your phone (for voice input)
 
-```bash
-npm install -g eas-cli
-eas login
-eas build:configure
-eas build -p android --profile development   # or --profile preview for a standalone build
-```
-
-Download the resulting `.apk` link on your phone (enable "install unknown apps" for your browser first) and install it. A `development` build still connects to `npx expo start` for live reloading; a `preview`/production build is fully standalone.
-
-## Building a personal Android APK
-
-You don't need to publish to the Play Store to install this on your own phone. Easiest path is [EAS Build](https://docs.expo.dev/build/introduction/) with a free Expo account:
+To get voice input working, or to have the app live as its own icon on your phone (no Expo Go needed), build it once with [EAS](https://docs.expo.dev/build/introduction/) (free account):
 
 ```bash
 npm install -g eas-cli
-eas login
-eas build:configure
-eas build -p android --profile preview
+eas login                     # one-time, run this yourself — needs your Expo account
+eas build:configure           # one-time, links this project to your EAS account
+eas update:configure          # one-time, wires up OTA updates (see below)
+eas build -p android --profile development   # installs a dev client you keep reloading into via `npm run dev`
 ```
 
-This produces a downloadable `.apk` you can install directly via `adb install` or by opening the download link on your phone (enable "install unknown apps" for your browser first). Re-run the same command any time you want to ship yourself an updated build.
+Download the resulting `.apk` link on your phone (enable "install unknown apps" for your browser first) and install it. Then run `npm run dev` on your computer and open the app on your phone — it connects the same way Expo Go does, but with the native mic module included.
 
-Alternatively, for local builds without EAS: `npx expo run:android` (needs Android Studio / SDK installed locally).
+### Shipping updates to your phone automatically (no rebuild)
+
+Once the dev client (or a `preview` build) is installed, you don't need to rebuild the APK for ordinary code changes — push them over the air:
+
+```bash
+npm run deploy
+```
+
+This runs `eas update`, which uploads your latest JS/TS changes to the `preview` channel. The app on your phone picks them up automatically the next time you open it (or resumes from background). Use this whenever you want to "ship yourself" the latest version without reinstalling anything.
+
+A full rebuild (`eas build -p android --profile preview`) is only needed again if you add a new native module (like a different native library) — everyday feature/UI changes just need `npm run deploy`.
 
 ## Project structure
 
