@@ -3,7 +3,7 @@ import { View, Text, Pressable, ScrollView, StyleSheet, SafeAreaView, Alert, Pla
 import { useHabits } from '../HabitsContext';
 import { DayGrid } from '../components/DayGrid';
 import { ProgressBar } from '../components/ProgressBar';
-import { currentStreak, todayStr } from '../utils/date';
+import { currentStreak, todayStr, formatNiceDate } from '../utils/date';
 
 export function HabitDetailScreen({ habitId, onBack }: { habitId: string; onBack: () => void }) {
   const { habits, toggleDate, deleteHabit } = useHabits();
@@ -73,6 +73,28 @@ export function HabitDetailScreen({ habitId, onBack }: { habitId: string; onBack
         />
         <Text style={styles.hint}>Tap any past day to toggle it.</Text>
 
+        {(habit.notes && Object.keys(habit.notes).length > 0) ||
+        (habit.minutes && Object.keys(habit.minutes).length > 0) ? (
+          <>
+            <Text style={styles.sectionTitle}>Recent logs</Text>
+            {[...habit.completedDates]
+              .filter((d) => habit.notes?.[d] || habit.minutes?.[d])
+              .sort((a, b) => (a < b ? 1 : -1))
+              .slice(0, 10)
+              .map((d) => (
+                <View key={d} style={styles.logRow}>
+                  <Text style={styles.logDate}>{formatNiceDate(d)}</Text>
+                  <View style={styles.logDetails}>
+                    {habit.minutes?.[d] !== undefined && (
+                      <Text style={styles.logMinutes}>{habit.minutes[d]} min</Text>
+                    )}
+                    {habit.notes?.[d] && <Text style={styles.logNote}>{habit.notes[d]}</Text>}
+                  </View>
+                </View>
+              ))}
+          </>
+        ) : null}
+
         <Pressable style={styles.deleteButton} onPress={confirmDelete}>
           <Text style={styles.deleteButtonText}>Delete habit</Text>
         </Pressable>
@@ -141,5 +163,29 @@ const styles = StyleSheet.create({
   deleteButtonText: {
     color: '#C62828',
     fontWeight: '600',
+  },
+  logRow: {
+    flexDirection: 'row',
+    gap: 10,
+    paddingVertical: 6,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+  },
+  logDate: {
+    fontSize: 13,
+    color: '#999',
+    width: 56,
+  },
+  logDetails: {
+    flex: 1,
+  },
+  logMinutes: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#2E7D32',
+  },
+  logNote: {
+    fontSize: 13,
+    color: '#444',
   },
 });

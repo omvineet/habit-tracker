@@ -9,6 +9,7 @@ const SEED_HABITS: Habit[] = [
     id: 'seed-100-days-of-yoga',
     name: '100 Days of Yoga',
     emoji: '🧘',
+    keywords: ['yoga', 'suryanamaskar', 'surya namaskar', 'surya namaskars'],
     targetDays: 100,
     createdAt: todayStr(),
     completedDates: [],

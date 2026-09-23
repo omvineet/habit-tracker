@@ -4,7 +4,12 @@ import { useHabits } from '../HabitsContext';
 import { HabitCard } from '../components/HabitCard';
 import { AddHabitModal } from '../components/AddHabitModal';
 
-export function HomeScreen({ onOpenHabit }: { onOpenHabit: (id: string) => void }) {
+type Props = {
+  onOpenHabit: (id: string) => void;
+  onQuickLog: () => void;
+};
+
+export function HomeScreen({ onOpenHabit, onQuickLog }: Props) {
   const { habits, loading, addHabit } = useHabits();
   const [showAdd, setShowAdd] = useState(false);
 
@@ -32,6 +37,10 @@ export function HomeScreen({ onOpenHabit }: { onOpenHabit: (id: string) => void 
         contentContainerStyle={styles.list}
         renderItem={({ item }) => <HabitCard habit={item} onPress={() => onOpenHabit(item.id)} />}
       />
+
+      <Pressable style={styles.quickLogButton} onPress={onQuickLog}>
+        <Text style={styles.quickLogIcon}>🎙️</Text>
+      </Pressable>
 
       <AddHabitModal visible={showAdd} onClose={() => setShowAdd(false)} onCreate={addHabit} />
     </SafeAreaView>
@@ -86,5 +95,24 @@ const styles = StyleSheet.create({
   emptyText: {
     color: '#999',
     textAlign: 'center',
+  },
+  quickLogButton: {
+    position: 'absolute',
+    right: 20,
+    bottom: 28,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: '#1565C0',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 4,
+  },
+  quickLogIcon: {
+    fontSize: 26,
   },
 });
