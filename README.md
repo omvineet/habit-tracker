@@ -57,6 +57,23 @@ This runs `eas update`, which uploads your latest JS/TS changes to the `preview`
 
 A full rebuild (`eas build -p android --profile preview`) is only needed again if you add a new native module (like a different native library) — everyday feature/UI changes just need `npm run deploy`.
 
+## Tests
+
+Both `npm run deploy` and `npm run build:local` first run `npm run check` (TypeScript + the full Jest suite) and stop if anything fails, so a broken build never reaches your phone.
+
+```bash
+npm test             # run the suite once
+npm run test:watch   # re-run on file changes
+npm run check        # typecheck + tests (what deploy runs)
+```
+
+Tests live in `__tests__/` and use `jest-expo` with React Native Testing Library:
+
+- `date`, `parseLogEntry`, `storage` — pure logic: streaks, date math, voice-entry parsing, persistence/seeding
+- `HabitsContext` — add / delete / toggle / log state changes and that they're saved
+- `App` — full user flows through the real screens: adding habits, the day grid, deleting, typed Quick Log with auto-save
+- `QuickLogSpeech` — the voice flow against a fake speech-recognition module (permissions, live transcript, errors)
+
 ## Project structure
 
 ```
