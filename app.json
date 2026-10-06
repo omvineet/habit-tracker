@@ -23,6 +23,18 @@
     },
     "plugins": [
       "expo-speech-recognition"
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "6afec705-443a-4158-a8de-411f95566dbd"
+      }
+    },
+    "owner": "seva-labs",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/6afec705-443a-4158-a8de-411f95566dbd"
+    }
   }
 }
