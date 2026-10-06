@@ -24,7 +24,8 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
-    "deploy": "eas update --branch preview --auto"
+    "deploy": "eas update --branch preview --auto",
+    "build:local": "eas build -p android --profile preview --local --output build/habit-tracker.apk"
   },
   "private": true
 }
