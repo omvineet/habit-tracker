@@ -1,25 +1,53 @@
-import React from 'react';
-import { View, StyleSheet } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { Animated, StyleSheet, View } from 'react-native';
+import { colors, motion, radii } from '../theme';
 
-export function ProgressBar({ progress, color = '#2E7D32' }: { progress: number; color?: string }) {
+export function ProgressBar({
+  progress,
+  color = colors.volt,
+}: {
+  progress: number;
+  color?: string;
+}) {
   const clamped = Math.max(0, Math.min(1, progress));
+  const width = useRef(new Animated.Value(clamped)).current;
+
+  useEffect(() => {
+    Animated.timing(width, {
+      toValue: clamped,
+      duration: motion.fillMs,
+      useNativeDriver: false,
+    }).start();
+  }, [clamped, width]);
+
   return (
     <View style={styles.track}>
-      <View style={[styles.fill, { width: `${clamped * 100}%`, backgroundColor: color }]} />
+      <Animated.View
+        style={[
+          styles.fill,
+          {
+            backgroundColor: color,
+            width: width.interpolate({
+              inputRange: [0, 1],
+              outputRange: ['0%', '100%'],
+            }),
+          },
+        ]}
+      />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   track: {
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: '#E3E3E3',
+    height: 6,
+    borderRadius: radii.sharp,
+    backgroundColor: colors.line,
     overflow: 'hidden',
     width: '100%',
   },
   fill: {
     height: '100%',
-    borderRadius: 4,
+    borderRadius: radii.sharp,
   },
 });

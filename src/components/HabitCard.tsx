@@ -1,8 +1,10 @@
 import React from 'react';
-import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { Habit } from '../types';
 import { ProgressBar } from './ProgressBar';
+import { AthleticPress } from './AthleticPress';
 import { currentStreak } from '../utils/date';
+import { colors, fonts, radii } from '../theme';
 
 export function HabitCard({ habit, onPress }: { habit: Habit; onPress: () => void }) {
   const completed = habit.completedDates.length;
@@ -10,53 +12,69 @@ export function HabitCard({ habit, onPress }: { habit: Habit; onPress: () => voi
   const progress = completed / habit.targetDays;
 
   return (
-    <Pressable onPress={onPress} style={styles.card}>
-      <View style={styles.row}>
-        <Text style={styles.emoji}>{habit.emoji}</Text>
-        <View style={styles.info}>
-          <Text style={styles.title}>{habit.name}</Text>
-          <Text style={styles.subtitle}>
-            {completed}/{habit.targetDays} days · 🔥 {streak} day streak
+    <AthleticPress onPress={onPress} style={styles.card}>
+      <View style={styles.accent} />
+      <View style={styles.body}>
+        <View style={styles.topRow}>
+          <Text style={styles.mark}>{habit.emoji}</Text>
+          <Text style={styles.streak}>
+            {streak > 0 ? `${streak} DAY STREAK` : 'START STREAK'}
           </Text>
         </View>
+        <Text style={styles.title}>{habit.name}</Text>
+        <Text style={styles.subtitle}>
+          {completed}/{habit.targetDays} days · 🔥 {streak} day streak
+        </Text>
+        <ProgressBar progress={progress} />
       </View>
-      <ProgressBar progress={progress} />
-    </Pressable>
+    </AthleticPress>
   );
 }
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
-    gap: 10,
-    shadowColor: '#000',
-    shadowOpacity: 0.06,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 2,
+    backgroundColor: colors.panel,
+    borderRadius: radii.panel,
+    marginBottom: 14,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: colors.line,
+    flexDirection: 'row',
   },
-  row: {
+  accent: {
+    width: 6,
+    backgroundColor: colors.volt,
+  },
+  body: {
+    flex: 1,
+    padding: 16,
+    gap: 8,
+  },
+  topRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    justifyContent: 'space-between',
   },
-  emoji: {
-    fontSize: 32,
+  mark: {
+    fontSize: 22,
   },
-  info: {
-    flex: 1,
+  streak: {
+    fontFamily: fonts.bodyBold,
+    fontSize: 12,
+    letterSpacing: 1.2,
+    color: colors.volt,
   },
   title: {
-    fontSize: 17,
-    fontWeight: '600',
-    color: '#1a1a1a',
+    fontFamily: fonts.display,
+    fontSize: 28,
+    lineHeight: 30,
+    color: colors.chalk,
+    letterSpacing: 0.5,
+    textTransform: 'uppercase',
   },
   subtitle: {
-    fontSize: 13,
-    color: '#666',
-    marginTop: 2,
+    fontFamily: fonts.body,
+    fontSize: 15,
+    color: colors.mute,
   },
 });

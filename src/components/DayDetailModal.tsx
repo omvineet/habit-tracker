@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { Modal, View, Text, TextInput, Pressable, StyleSheet, Switch } from 'react-native';
+import { Modal, View, Text, TextInput, StyleSheet, Switch } from 'react-native';
 import { formatFullDate } from '../utils/date';
+import { AthleticPress } from './AthleticPress';
+import { colors, fonts, radii } from '../theme';
 
 type Props = {
   visible: boolean;
@@ -30,27 +32,29 @@ export function DayDetailModal({ visible, dateStr, completed, note, onClose, onS
   };
 
   return (
-    <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
+    <Modal visible={visible} animationType="fade" transparent onRequestClose={onClose}>
       <View style={styles.backdrop}>
         <View style={styles.sheet}>
+          <Text style={styles.kicker}>DAY LOG</Text>
           <Text style={styles.heading}>{formatFullDate(dateStr)}</Text>
-          <Text style={styles.subheading}>Mark the day and add an optional note.</Text>
+          <Text style={styles.subheading}>Lock it in. Leave a note if you want.</Text>
 
           <View style={styles.doneRow}>
-            <Text style={styles.label}>Done</Text>
+            <Text style={styles.label}>DONE</Text>
             <Switch
               value={done}
               onValueChange={setDone}
-              trackColor={{ false: '#ddd', true: '#A5D6A7' }}
-              thumbColor={done ? '#2E7D32' : '#f4f3f4'}
+              trackColor={{ false: colors.line, true: colors.volt }}
+              thumbColor={done ? colors.ink : colors.mute}
               accessibilityLabel="Mark day done"
             />
           </View>
 
-          <Text style={styles.label}>Note</Text>
+          <Text style={styles.label}>NOTE</Text>
           <TextInput
             style={styles.input}
             placeholder="How did it go?"
+            placeholderTextColor={colors.mute}
             value={noteText}
             onChangeText={setNoteText}
             multiline
@@ -58,12 +62,12 @@ export function DayDetailModal({ visible, dateStr, completed, note, onClose, onS
           />
 
           <View style={styles.actions}>
-            <Pressable style={[styles.button, styles.buttonSecondary]} onPress={onClose}>
+            <AthleticPress style={[styles.button, styles.buttonSecondary]} onPress={onClose}>
               <Text style={styles.buttonSecondaryText}>Cancel</Text>
-            </Pressable>
-            <Pressable style={[styles.button, styles.buttonPrimary]} onPress={handleSave}>
+            </AthleticPress>
+            <AthleticPress style={[styles.button, styles.buttonPrimary]} onPress={handleSave}>
               <Text style={styles.buttonPrimaryText}>Save</Text>
-            </Pressable>
+            </AthleticPress>
           </View>
         </View>
       </View>
@@ -74,24 +78,33 @@ export function DayDetailModal({ visible, dateStr, completed, note, onClose, onS
 const styles = StyleSheet.create({
   backdrop: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.4)',
+    backgroundColor: 'rgba(0,0,0,0.72)',
     justifyContent: 'flex-end',
   },
   sheet: {
-    backgroundColor: '#fff',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
+    backgroundColor: colors.asphalt,
+    borderTopWidth: 3,
+    borderTopColor: colors.volt,
     padding: 24,
     gap: 8,
   },
+  kicker: {
+    fontFamily: fonts.bodyBold,
+    fontSize: 12,
+    letterSpacing: 2,
+    color: colors.volt,
+  },
   heading: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#1a1a1a',
+    fontFamily: fonts.display,
+    fontSize: 32,
+    lineHeight: 34,
+    color: colors.chalk,
+    textTransform: 'uppercase',
   },
   subheading: {
-    fontSize: 13,
-    color: '#666',
+    fontFamily: fonts.body,
+    fontSize: 15,
+    color: colors.mute,
     marginBottom: 8,
   },
   doneRow: {
@@ -101,18 +114,23 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   label: {
+    fontFamily: fonts.bodyBold,
     fontSize: 13,
-    color: '#666',
+    letterSpacing: 1.5,
+    color: colors.mute,
     marginTop: 8,
   },
   input: {
     borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
+    borderColor: colors.line,
+    borderRadius: radii.tight,
     paddingHorizontal: 12,
-    paddingVertical: 10,
+    paddingVertical: 12,
     fontSize: 16,
     minHeight: 88,
+    color: colors.chalk,
+    backgroundColor: colors.panel,
+    fontFamily: fonts.body,
   },
   actions: {
     flexDirection: 'row',
@@ -121,22 +139,28 @@ const styles = StyleSheet.create({
   },
   button: {
     flex: 1,
-    paddingVertical: 12,
-    borderRadius: 8,
+    paddingVertical: 14,
+    borderRadius: radii.tight,
     alignItems: 'center',
   },
   buttonSecondary: {
-    backgroundColor: '#F0F0F0',
+    backgroundColor: colors.panel,
+    borderWidth: 1,
+    borderColor: colors.line,
   },
   buttonSecondaryText: {
-    color: '#333',
-    fontWeight: '600',
+    color: colors.chalk,
+    fontFamily: fonts.bodyBold,
+    fontSize: 16,
+    letterSpacing: 1,
   },
   buttonPrimary: {
-    backgroundColor: '#2E7D32',
+    backgroundColor: colors.volt,
   },
   buttonPrimaryText: {
-    color: '#fff',
-    fontWeight: '600',
+    color: colors.ink,
+    fontFamily: fonts.bodyBold,
+    fontSize: 16,
+    letterSpacing: 1,
   },
 });

@@ -7,6 +7,7 @@ import {
   startOfMonth,
   todayStr,
 } from '../utils/date';
+import { colors, fonts, radii } from '../theme';
 
 type Props = {
   createdAt: string;
@@ -15,7 +16,7 @@ type Props = {
   onSelectDate: (dateStr: string) => void;
 };
 
-const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const WEEKDAYS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 
 export function DayGrid({ createdAt, completedDates, notes, onSelectDate }: Props) {
   const today = todayStr();
@@ -55,8 +56,8 @@ export function DayGrid({ createdAt, completedDates, notes, onSelectDate }: Prop
       </View>
 
       <View style={styles.weekRow}>
-        {WEEKDAYS.map((d) => (
-          <Text key={d} style={styles.weekday}>
+        {WEEKDAYS.map((d, i) => (
+          <Text key={`${d}-${i}`} style={styles.weekday}>
             {d}
           </Text>
         ))}
@@ -108,7 +109,12 @@ export function DayGrid({ createdAt, completedDates, notes, onSelectDate }: Prop
 
 const styles = StyleSheet.create({
   wrap: {
-    gap: 8,
+    gap: 10,
+    backgroundColor: colors.panel,
+    borderWidth: 1,
+    borderColor: colors.line,
+    borderRadius: radii.panel,
+    padding: 12,
   },
   header: {
     flexDirection: 'row',
@@ -118,24 +124,28 @@ const styles = StyleSheet.create({
   navButton: {
     width: 36,
     height: 36,
-    borderRadius: 8,
+    borderRadius: radii.tight,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#E8F5E9',
+    backgroundColor: colors.asphalt,
+    borderWidth: 1,
+    borderColor: colors.line,
   },
   navDisabled: {
     opacity: 0.35,
   },
   navText: {
     fontSize: 22,
-    color: '#2E7D32',
-    fontWeight: '600',
+    color: colors.volt,
+    fontFamily: fonts.bodyBold,
     lineHeight: 26,
   },
   monthLabel: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#1a1a1a',
+    fontFamily: fonts.display,
+    fontSize: 22,
+    color: colors.chalk,
+    letterSpacing: 1,
+    textTransform: 'uppercase',
   },
   weekRow: {
     flexDirection: 'row',
@@ -143,9 +153,10 @@ const styles = StyleSheet.create({
   weekday: {
     flex: 1,
     textAlign: 'center',
-    fontSize: 11,
-    color: '#999',
-    fontWeight: '600',
+    fontSize: 13,
+    color: colors.mute,
+    fontFamily: fonts.bodyBold,
+    letterSpacing: 1,
   },
   grid: {
     flexDirection: 'row',
@@ -156,38 +167,38 @@ const styles = StyleSheet.create({
     aspectRatio: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: 8,
+    borderRadius: radii.sharp,
   },
   cellDone: {
-    backgroundColor: '#2E7D32',
+    backgroundColor: colors.volt,
   },
   cellToday: {
     borderWidth: 2,
-    borderColor: '#1565C0',
+    borderColor: colors.heat,
   },
   cellDisabled: {
-    opacity: 0.35,
+    opacity: 0.28,
   },
   cellText: {
-    fontSize: 14,
-    color: '#333',
-    fontWeight: '600',
+    fontSize: 15,
+    color: colors.chalk,
+    fontFamily: fonts.bodyBold,
   },
   cellTextDone: {
-    color: '#fff',
+    color: colors.ink,
   },
   cellTextDisabled: {
-    color: '#999',
+    color: colors.mute,
   },
   noteDot: {
     position: 'absolute',
     bottom: 4,
-    width: 5,
-    height: 5,
-    borderRadius: 2.5,
-    backgroundColor: '#1565C0',
+    width: 4,
+    height: 4,
+    borderRadius: 1,
+    backgroundColor: colors.heat,
   },
   noteDotDone: {
-    backgroundColor: '#C8E6C9',
+    backgroundColor: colors.ink,
   },
 });
