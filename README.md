@@ -8,7 +8,7 @@ First habit tracked: **100 Days of Yoga** 🧘 (seeded automatically on first la
 
 - Add your own habits with a name, emoji, and target number of days
 - Daily check-in with streak tracking
-- Progress bar + day-by-day grid you can tap to toggle any past day
+- Month calendar of real dates — tap any past day to mark it done and attach a note
 - **Quick Log**: tap the mic button and say (or type) something like *"15 mins of yoga done, felt great"* — it's parsed locally (duration, matched habit, and note) and logged with a short auto-confirm countdown so you can cancel a bad match
 - Delete habits you no longer want to track
 - Data is stored locally on-device (`AsyncStorage` — `localStorage` on web), no backend, no account
@@ -88,7 +88,8 @@ src/
   components/
     HabitCard.tsx
     ProgressBar.tsx
-    DayGrid.tsx
+    DayGrid.tsx               # month calendar of real dates
+    DayDetailModal.tsx        # mark a date done + edit its note
     AddHabitModal.tsx
   screens/
     HomeScreen.tsx

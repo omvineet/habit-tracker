@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
-import { View, Text, FlatList, Pressable, StyleSheet, SafeAreaView } from 'react-native';
+import { View, Text, FlatList, StyleSheet, SafeAreaView } from 'react-native';
 import { useHabits } from '../HabitsContext';
 import { HabitCard } from '../components/HabitCard';
 import { AddHabitModal } from '../components/AddHabitModal';
+import { AthleticPress } from '../components/AthleticPress';
+import { colors, fonts, radii } from '../theme';
 
 type Props = {
   onOpenHabit: (id: string) => void;
@@ -15,14 +17,24 @@ export function HomeScreen({ onOpenHabit, onQuickLog }: Props) {
 
   return (
     <SafeAreaView style={styles.container}>
+      <View style={[StyleSheet.absoluteFill, styles.atmosphere]}>
+        <View style={styles.heroWash} />
+        <View style={styles.slash} />
+      </View>
+
       <View style={styles.header}>
-        <View>
+        <View style={styles.brandBlock}>
+          <Text style={styles.brand}>TRAIN</Text>
           <Text style={styles.title}>My Habits</Text>
-          <Text style={styles.subtitle}>Small daily wins add up.</Text>
+          <Text style={styles.subtitle}>SHOW UP. STACK DAYS.</Text>
         </View>
-        <Pressable style={styles.addButton} onPress={() => setShowAdd(true)}>
+        <AthleticPress
+          style={styles.addButton}
+          onPress={() => setShowAdd(true)}
+          accessibilityLabel="Add habit"
+        >
           <Text style={styles.addButtonText}>+</Text>
-        </Pressable>
+        </AthleticPress>
       </View>
 
       {!loading && habits.length === 0 && (
@@ -38,9 +50,14 @@ export function HomeScreen({ onOpenHabit, onQuickLog }: Props) {
         renderItem={({ item }) => <HabitCard habit={item} onPress={() => onOpenHabit(item.id)} />}
       />
 
-      <Pressable style={styles.quickLogButton} onPress={onQuickLog}>
+      <AthleticPress
+        style={styles.quickLogButton}
+        onPress={onQuickLog}
+        accessibilityLabel="Quick Log"
+      >
+        <Text style={styles.quickLogText}>LOG</Text>
         <Text style={styles.quickLogIcon}>🎙️</Text>
-      </Pressable>
+      </AthleticPress>
 
       <AddHabitModal visible={showAdd} onClose={() => setShowAdd(false)} onCreate={addHabit} />
     </SafeAreaView>
@@ -50,69 +67,113 @@ export function HomeScreen({ onOpenHabit, onQuickLog }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F7F7F5',
+    backgroundColor: colors.ink,
+  },
+  atmosphere: {
+    pointerEvents: 'none',
+  },
+  heroWash: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 280,
+    backgroundColor: colors.asphalt,
+  },
+  slash: {
+    position: 'absolute',
+    top: -40,
+    right: -60,
+    width: 220,
+    height: 420,
+    backgroundColor: colors.volt,
+    opacity: 0.12,
+    transform: [{ rotate: '18deg' }],
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     paddingHorizontal: 20,
-    paddingTop: 16,
+    paddingTop: 12,
     paddingBottom: 8,
   },
-  title: {
-    fontSize: 26,
-    fontWeight: '700',
-    color: '#1a1a1a',
+  brandBlock: {
+    flex: 1,
+    paddingRight: 12,
   },
-  subtitle: {
-    fontSize: 13,
-    color: '#777',
+  brand: {
+    fontFamily: fonts.display,
+    fontSize: 72,
+    lineHeight: 72,
+    color: colors.chalk,
+    letterSpacing: 1,
+  },
+  title: {
+    fontFamily: fonts.bodyBold,
+    fontSize: 18,
+    color: colors.volt,
+    letterSpacing: 2,
     marginTop: 2,
   },
+  subtitle: {
+    fontFamily: fonts.bodyMedium,
+    fontSize: 14,
+    color: colors.mute,
+    letterSpacing: 1.4,
+    marginTop: 6,
+  },
   addButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: '#2E7D32',
+    width: 48,
+    height: 48,
+    borderRadius: radii.tight,
+    backgroundColor: colors.volt,
     alignItems: 'center',
     justifyContent: 'center',
+    marginTop: 8,
   },
   addButtonText: {
-    color: '#fff',
-    fontSize: 24,
-    lineHeight: 26,
+    color: colors.ink,
+    fontSize: 28,
+    lineHeight: 30,
+    fontFamily: fonts.bodyBold,
   },
   list: {
     paddingHorizontal: 20,
-    paddingTop: 12,
-    paddingBottom: 40,
+    paddingTop: 18,
+    paddingBottom: 110,
   },
   empty: {
     paddingHorizontal: 20,
     paddingTop: 40,
   },
   emptyText: {
-    color: '#999',
+    color: colors.mute,
     textAlign: 'center',
+    fontFamily: fonts.body,
+    fontSize: 16,
   },
   quickLogButton: {
     position: 'absolute',
     right: 20,
     bottom: 28,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: '#1565C0',
+    minWidth: 88,
+    height: 52,
+    paddingHorizontal: 16,
+    borderRadius: radii.tight,
+    backgroundColor: colors.heat,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 4,
+    flexDirection: 'row',
+    gap: 6,
+  },
+  quickLogText: {
+    color: colors.white,
+    fontFamily: fonts.display,
+    fontSize: 24,
+    letterSpacing: 1,
   },
   quickLogIcon: {
-    fontSize: 26,
+    fontSize: 16,
   },
 });

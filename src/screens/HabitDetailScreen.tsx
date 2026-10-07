@@ -1,29 +1,54 @@
-import React from 'react';
-import { View, Text, Pressable, ScrollView, StyleSheet, SafeAreaView, Alert, Platform } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import {
+  View,
+  Text,
+  ScrollView,
+  StyleSheet,
+  SafeAreaView,
+  Alert,
+  Platform,
+  Animated,
+} from 'react-native';
 import { useHabits } from '../HabitsContext';
 import { DayGrid } from '../components/DayGrid';
+import { DayDetailModal } from '../components/DayDetailModal';
 import { ProgressBar } from '../components/ProgressBar';
+import { AthleticPress } from '../components/AthleticPress';
 import { currentStreak, todayStr, formatNiceDate } from '../utils/date';
+import { colors, fonts, motion, radii } from '../theme';
 
 export function HabitDetailScreen({ habitId, onBack }: { habitId: string; onBack: () => void }) {
-  const { habits, toggleDate, deleteHabit } = useHabits();
+  const { habits, toggleDate, deleteHabit, updateDay } = useHabits();
   const habit = habits.find((h) => h.id === habitId);
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const flash = useRef(new Animated.Value(0)).current;
+
+  const today = todayStr();
+  const doneToday = habit?.completedDates.includes(today) ?? false;
+
+  useEffect(() => {
+    if (!doneToday) return;
+    flash.setValue(1);
+    Animated.timing(flash, {
+      toValue: 0,
+      duration: motion.flashMs * 4,
+      useNativeDriver: true,
+    }).start();
+  }, [doneToday, flash]);
 
   if (!habit) {
     return (
       <SafeAreaView style={styles.container}>
-        <Text>Habit not found.</Text>
-        <Pressable onPress={onBack}>
+        <Text style={styles.missing}>Habit not found.</Text>
+        <AthleticPress onPress={onBack}>
           <Text style={styles.link}>Go back</Text>
-        </Pressable>
+        </AthleticPress>
       </SafeAreaView>
     );
   }
 
   const completed = habit.completedDates.length;
   const streak = currentStreak(habit.completedDates);
-  const today = todayStr();
-  const doneToday = habit.completedDates.includes(today);
 
   const confirmDelete = () => {
     const doDelete = () => {
@@ -40,14 +65,29 @@ export function HabitDetailScreen({ habitId, onBack }: { habitId: string; onBack
     }
   };
 
+  const logDates = [
+    ...new Set([...Object.keys(habit.notes ?? {}), ...Object.keys(habit.minutes ?? {})]),
+  ]
+    .sort((a, b) => (a < b ? 1 : -1))
+    .slice(0, 10);
+
   return (
     <SafeAreaView style={styles.container}>
+      <Animated.View
+        pointerEvents="none"
+        style={[
+          styles.flash,
+          {
+            opacity: flash.interpolate({ inputRange: [0, 1], outputRange: [0, 0.22] }),
+          },
+        ]}
+      />
       <ScrollView contentContainerStyle={styles.content}>
-        <Pressable onPress={onBack}>
+        <AthleticPress onPress={onBack}>
           <Text style={styles.link}>‹ Back</Text>
-        </Pressable>
+        </AthleticPress>
 
-        <Text style={styles.emoji}>{habit.emoji}</Text>
+        <Text style={styles.kicker}>{habit.emoji} CHALLENGE</Text>
         <Text style={styles.title}>{habit.name}</Text>
         <Text style={styles.subtitle}>
           {completed}/{habit.targetDays} days complete · 🔥 {streak} day streak
@@ -55,50 +95,60 @@ export function HabitDetailScreen({ habitId, onBack }: { habitId: string; onBack
 
         <ProgressBar progress={completed / habit.targetDays} />
 
-        <Pressable
+        <AthleticPress
           style={[styles.checkButton, doneToday && styles.checkButtonDone]}
           onPress={() => toggleDate(habit.id, today)}
         >
-          <Text style={styles.checkButtonText}>
+          <Text style={[styles.checkButtonText, doneToday && styles.checkButtonTextDone]}>
             {doneToday ? '✓ Done today' : 'Mark today done'}
           </Text>
-        </Pressable>
+        </AthleticPress>
 
-        <Text style={styles.sectionTitle}>Progress</Text>
+        <Text style={styles.sectionTitle}>Calendar</Text>
         <DayGrid
           createdAt={habit.createdAt}
-          targetDays={habit.targetDays}
           completedDates={habit.completedDates}
-          onToggle={(d) => toggleDate(habit.id, d)}
+          notes={habit.notes}
+          onSelectDate={setSelectedDate}
         />
-        <Text style={styles.hint}>Tap any past day to toggle it.</Text>
+        <Text style={styles.hint}>Tap a date to mark it done and add a note.</Text>
 
-        {(habit.notes && Object.keys(habit.notes).length > 0) ||
-        (habit.minutes && Object.keys(habit.minutes).length > 0) ? (
+        {logDates.length > 0 ? (
           <>
             <Text style={styles.sectionTitle}>Recent logs</Text>
-            {[...habit.completedDates]
-              .filter((d) => habit.notes?.[d] || habit.minutes?.[d])
-              .sort((a, b) => (a < b ? 1 : -1))
-              .slice(0, 10)
-              .map((d) => (
-                <View key={d} style={styles.logRow}>
-                  <Text style={styles.logDate}>{formatNiceDate(d)}</Text>
-                  <View style={styles.logDetails}>
-                    {habit.minutes?.[d] !== undefined && (
-                      <Text style={styles.logMinutes}>{habit.minutes[d]} min</Text>
-                    )}
-                    {habit.notes?.[d] && <Text style={styles.logNote}>{habit.notes[d]}</Text>}
-                  </View>
+            {logDates.map((d) => (
+              <AthleticPress key={d} style={styles.logRow} onPress={() => setSelectedDate(d)}>
+                <Text style={styles.logDate}>{formatNiceDate(d)}</Text>
+                <View style={styles.logDetails}>
+                  {habit.minutes?.[d] !== undefined && (
+                    <Text style={styles.logMinutes}>{habit.minutes[d]} min</Text>
+                  )}
+                  {habit.notes?.[d] ? (
+                    <Text style={styles.logNote}>{habit.notes[d]}</Text>
+                  ) : (
+                    <Text style={styles.logNoteEmpty}>No note</Text>
+                  )}
                 </View>
-              ))}
+              </AthleticPress>
+            ))}
           </>
         ) : null}
 
-        <Pressable style={styles.deleteButton} onPress={confirmDelete}>
+        <AthleticPress style={styles.deleteButton} onPress={confirmDelete}>
           <Text style={styles.deleteButtonText}>Delete habit</Text>
-        </Pressable>
+        </AthleticPress>
       </ScrollView>
+
+      <DayDetailModal
+        visible={selectedDate != null}
+        dateStr={selectedDate}
+        completed={selectedDate ? habit.completedDates.includes(selectedDate) : false}
+        note={selectedDate ? (habit.notes?.[selectedDate] ?? '') : ''}
+        onClose={() => setSelectedDate(null)}
+        onSave={(details) => {
+          if (selectedDate) updateDay(habit.id, selectedDate, details);
+        }}
+      />
     </SafeAreaView>
   );
 }
@@ -106,54 +156,81 @@ export function HabitDetailScreen({ habitId, onBack }: { habitId: string; onBack
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F7F7F5',
+    backgroundColor: colors.ink,
+  },
+  flash: {
+    ...StyleSheet.absoluteFill,
+    backgroundColor: colors.volt,
+    zIndex: 2,
   },
   content: {
     padding: 20,
     paddingBottom: 60,
     gap: 12,
   },
-  link: {
-    color: '#2E7D32',
-    fontSize: 16,
-    fontWeight: '600',
+  missing: {
+    color: colors.chalk,
+    fontFamily: fonts.body,
+    padding: 20,
   },
-  emoji: {
-    fontSize: 48,
-    marginTop: 8,
+  link: {
+    color: colors.volt,
+    fontSize: 16,
+    fontFamily: fonts.bodyBold,
+    letterSpacing: 1,
+  },
+  kicker: {
+    fontFamily: fonts.bodyBold,
+    fontSize: 13,
+    letterSpacing: 2,
+    color: colors.volt,
+    marginTop: 10,
   },
   title: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: '#1a1a1a',
+    fontFamily: fonts.display,
+    fontSize: 44,
+    lineHeight: 44,
+    color: colors.chalk,
+    textTransform: 'uppercase',
   },
   subtitle: {
-    fontSize: 14,
-    color: '#666',
+    fontFamily: fonts.body,
+    fontSize: 16,
+    color: colors.mute,
   },
   checkButton: {
-    backgroundColor: '#2E7D32',
-    borderRadius: 10,
-    paddingVertical: 14,
+    backgroundColor: colors.volt,
+    borderRadius: radii.tight,
+    paddingVertical: 16,
     alignItems: 'center',
     marginTop: 8,
   },
   checkButtonDone: {
-    backgroundColor: '#1B5E20',
+    backgroundColor: colors.panel,
+    borderWidth: 1,
+    borderColor: colors.volt,
   },
   checkButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '700',
+    color: colors.ink,
+    fontSize: 18,
+    fontFamily: fonts.bodyBold,
+    letterSpacing: 1.2,
+  },
+  checkButtonTextDone: {
+    color: colors.volt,
   },
   sectionTitle: {
-    fontSize: 16,
-    fontWeight: '700',
+    fontFamily: fonts.display,
+    fontSize: 26,
+    color: colors.chalk,
     marginTop: 16,
+    letterSpacing: 1,
+    textTransform: 'uppercase',
   },
   hint: {
-    fontSize: 12,
-    color: '#999',
+    fontFamily: fonts.body,
+    fontSize: 13,
+    color: colors.mute,
   },
   deleteButton: {
     marginTop: 24,
@@ -161,31 +238,40 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
   },
   deleteButtonText: {
-    color: '#C62828',
-    fontWeight: '600',
+    color: colors.heat,
+    fontFamily: fonts.bodyBold,
+    letterSpacing: 1,
   },
   logRow: {
     flexDirection: 'row',
-    gap: 10,
-    paddingVertical: 6,
+    gap: 12,
+    paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    borderBottomColor: colors.line,
   },
   logDate: {
+    fontFamily: fonts.bodyBold,
     fontSize: 13,
-    color: '#999',
-    width: 56,
+    color: colors.volt,
+    width: 64,
   },
   logDetails: {
     flex: 1,
   },
   logMinutes: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: '#2E7D32',
+    fontFamily: fonts.bodyBold,
+    fontSize: 14,
+    color: colors.chalk,
+    letterSpacing: 1,
   },
   logNote: {
-    fontSize: 13,
-    color: '#444',
+    fontFamily: fonts.body,
+    fontSize: 15,
+    color: colors.chalk,
+  },
+  logNoteEmpty: {
+    fontFamily: fonts.body,
+    fontSize: 14,
+    color: colors.mute,
   },
 });

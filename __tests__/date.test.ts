@@ -1,10 +1,16 @@
 import {
   addDays,
+  addMonths,
+  buildMonthGrid,
   currentStreak,
   daysSince,
+  formatFullDate,
+  formatMonthYear,
   formatNiceDate,
+  startOfMonth,
   toDateStr,
   todayStr,
+  weekdayIndex,
 } from '../src/utils/date';
 import { NOW, TODAY } from './helpers';
 
@@ -101,5 +107,48 @@ describe('formatNiceDate', () => {
     const formatted = formatNiceDate('2026-03-05');
     expect(formatted).toMatch(/Mar/);
     expect(formatted).toMatch(/\b5\b/);
+  });
+});
+
+describe('formatFullDate / formatMonthYear', () => {
+  it('includes weekday and year for a full date', () => {
+    const formatted = formatFullDate('2026-03-15');
+    expect(formatted).toMatch(/Mar/);
+    expect(formatted).toMatch(/15/);
+    expect(formatted).toMatch(/2026/);
+  });
+
+  it('formats a month heading', () => {
+    const formatted = formatMonthYear('2026-03-01');
+    expect(formatted).toMatch(/March/);
+    expect(formatted).toMatch(/2026/);
+  });
+});
+
+describe('calendar helpers', () => {
+  it('startOfMonth and addMonths move by calendar months', () => {
+    expect(startOfMonth('2026-03-15')).toBe('2026-03-01');
+    expect(addMonths('2026-03-01', -1)).toBe('2026-02-01');
+    expect(addMonths('2026-12-01', 1)).toBe('2027-01-01');
+  });
+
+  it('weekdayIndex uses local Sunday=0', () => {
+    // 2026-03-01 is a Sunday
+    expect(weekdayIndex('2026-03-01')).toBe(0);
+    expect(weekdayIndex('2026-03-15')).toBe(0);
+  });
+
+  it('buildMonthGrid pads to full weeks with real flanking dates', () => {
+    const cells = buildMonthGrid('2026-03-01');
+    expect(cells.length % 7).toBe(0);
+    expect(cells.filter((c) => c.inMonth)).toHaveLength(31);
+    expect(cells[0]).toEqual({ dateStr: '2026-03-01', day: 1, inMonth: true });
+    expect(cells.find((c) => c.dateStr === '2026-03-15')).toEqual({
+      dateStr: '2026-03-15',
+      day: 15,
+      inMonth: true,
+    });
+    // April 1 follows March 31 in the trailing pad
+    expect(cells[cells.length - 1].dateStr >= '2026-03-31').toBe(true);
   });
 });

@@ -3,7 +3,6 @@ import {
   View,
   Text,
   TextInput,
-  Pressable,
   StyleSheet,
   SafeAreaView,
   Platform,
@@ -12,6 +11,8 @@ import { useHabits } from '../HabitsContext';
 import { parseLogEntry } from '../utils/parseLogEntry';
 import { todayStr } from '../utils/date';
 import { ParsedLogEntry } from '../types';
+import { AthleticPress } from '../components/AthleticPress';
+import { colors, fonts, radii } from '../theme';
 
 const AUTO_CONFIRM_SECONDS = 4;
 
@@ -129,34 +130,38 @@ export function QuickLogScreen({ onDone }: { onDone: () => void }) {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.content}>
-        <Pressable onPress={onDone}>
+        <AthleticPress onPress={onDone}>
           <Text style={styles.close}>Close</Text>
-        </Pressable>
+        </AthleticPress>
 
         {stage === 'listening' && (
           <View style={styles.center}>
-            <Text style={styles.mic}>🎙️</Text>
+            <Text style={styles.brand}>LOG IT</Text>
             <Text style={styles.listeningText}>Listening…</Text>
-            <Text style={styles.transcriptLive}>{transcript || 'Say something like "15 mins of yoga done"'}</Text>
+            <Text style={styles.transcriptLive}>
+              {transcript || 'Say something like "15 mins of yoga done"'}
+            </Text>
           </View>
         )}
 
         {stage === 'review' && !parsed && (
           <View style={styles.center}>
             {speechError && <Text style={styles.errorText}>{speechError}</Text>}
+            <Text style={styles.brand}>QUICK LOG</Text>
             <Text style={styles.label}>What did you do?</Text>
             <TextInput
               style={styles.input}
               placeholder='e.g. "15 mins of yoga done, felt great"'
+              placeholderTextColor={colors.mute}
               value={transcript}
               onChangeText={setTranscript}
               autoFocus
               onSubmitEditing={handleTranscriptSubmit}
               returnKeyType="done"
             />
-            <Pressable style={styles.primaryButton} onPress={handleTranscriptSubmit}>
+            <AthleticPress style={styles.primaryButton} onPress={handleTranscriptSubmit}>
               <Text style={styles.primaryButtonText}>Parse it</Text>
-            </Pressable>
+            </AthleticPress>
           </View>
         )}
 
@@ -170,7 +175,7 @@ export function QuickLogScreen({ onDone }: { onDone: () => void }) {
                 {parsed.note && <Text style={styles.reviewNote}>Note: {parsed.note}</Text>}
                 <Text style={styles.countdown}>Auto-saving in {countdown}s…</Text>
                 <View style={styles.actionsRow}>
-                  <Pressable
+                  <AthleticPress
                     style={[styles.button, styles.buttonSecondary]}
                     onPress={() => {
                       cancelAutoConfirm();
@@ -180,8 +185,8 @@ export function QuickLogScreen({ onDone }: { onDone: () => void }) {
                     }}
                   >
                     <Text style={styles.buttonSecondaryText}>Cancel</Text>
-                  </Pressable>
-                  <Pressable
+                  </AthleticPress>
+                  <AthleticPress
                     style={[styles.button, styles.buttonPrimary]}
                     onPress={() => {
                       cancelAutoConfirm();
@@ -189,7 +194,7 @@ export function QuickLogScreen({ onDone }: { onDone: () => void }) {
                     }}
                   >
                     <Text style={styles.buttonPrimaryText}>Save now</Text>
-                  </Pressable>
+                  </AthleticPress>
                 </View>
               </>
             ) : (
@@ -197,14 +202,14 @@ export function QuickLogScreen({ onDone }: { onDone: () => void }) {
                 <Text style={styles.errorText}>
                   Couldn't match "{parsed.rawText}" to one of your habits.
                 </Text>
-                <Pressable
+                <AthleticPress
                   style={styles.primaryButton}
                   onPress={() => {
                     setParsed(null);
                   }}
                 >
                   <Text style={styles.primaryButtonText}>Try again</Text>
-                </Pressable>
+                </AthleticPress>
               </>
             )}
           </View>
@@ -212,7 +217,7 @@ export function QuickLogScreen({ onDone }: { onDone: () => void }) {
 
         {stage === 'saved' && (
           <View style={styles.center}>
-            <Text style={styles.mic}>✅</Text>
+            <Text style={styles.brand}>LOCKED</Text>
             <Text style={styles.listeningText}>Logged!</Text>
           </View>
         )}
@@ -224,16 +229,17 @@ export function QuickLogScreen({ onDone }: { onDone: () => void }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F7F7F5',
+    backgroundColor: colors.ink,
   },
   content: {
     flex: 1,
     padding: 20,
   },
   close: {
-    color: '#2E7D32',
+    color: colors.volt,
     fontSize: 16,
-    fontWeight: '600',
+    fontFamily: fonts.bodyBold,
+    letterSpacing: 1,
   },
   center: {
     flex: 1,
@@ -241,52 +247,67 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 12,
   },
-  mic: {
-    fontSize: 56,
+  brand: {
+    fontFamily: fonts.display,
+    fontSize: 64,
+    lineHeight: 64,
+    color: colors.volt,
+    letterSpacing: 1,
   },
   listeningText: {
-    fontSize: 20,
-    fontWeight: '700',
+    fontFamily: fonts.bodyBold,
+    fontSize: 22,
+    color: colors.chalk,
+    letterSpacing: 1,
   },
   transcriptLive: {
-    fontSize: 15,
-    color: '#666',
+    fontFamily: fonts.body,
+    fontSize: 16,
+    color: colors.mute,
     textAlign: 'center',
     paddingHorizontal: 20,
   },
   label: {
-    fontSize: 15,
-    color: '#666',
+    fontFamily: fonts.body,
+    fontSize: 16,
+    color: colors.mute,
   },
   input: {
     borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
+    borderColor: colors.line,
+    borderRadius: radii.tight,
     paddingHorizontal: 14,
-    paddingVertical: 12,
+    paddingVertical: 14,
     fontSize: 16,
     width: '100%',
-    backgroundColor: '#fff',
+    backgroundColor: colors.panel,
+    color: colors.chalk,
+    fontFamily: fonts.body,
   },
   errorText: {
-    fontSize: 14,
-    color: '#C62828',
+    fontFamily: fonts.body,
+    fontSize: 15,
+    color: colors.heat,
     textAlign: 'center',
     paddingHorizontal: 12,
   },
   reviewHeading: {
-    fontSize: 19,
-    fontWeight: '700',
+    fontFamily: fonts.display,
+    fontSize: 34,
+    lineHeight: 36,
+    color: colors.chalk,
     textAlign: 'center',
   },
   reviewNote: {
-    fontSize: 14,
-    color: '#666',
+    fontFamily: fonts.body,
+    fontSize: 15,
+    color: colors.mute,
     textAlign: 'center',
   },
   countdown: {
-    fontSize: 13,
-    color: '#999',
+    fontFamily: fonts.body,
+    fontSize: 14,
+    color: colors.mute,
   },
   actionsRow: {
     flexDirection: 'row',
@@ -294,33 +315,39 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   button: {
-    paddingVertical: 12,
+    paddingVertical: 14,
     paddingHorizontal: 24,
-    borderRadius: 8,
+    borderRadius: radii.tight,
   },
   buttonSecondary: {
-    backgroundColor: '#F0F0F0',
+    backgroundColor: colors.panel,
+    borderWidth: 1,
+    borderColor: colors.line,
   },
   buttonSecondaryText: {
-    color: '#333',
-    fontWeight: '600',
+    color: colors.chalk,
+    fontFamily: fonts.bodyBold,
+    letterSpacing: 1,
   },
   buttonPrimary: {
-    backgroundColor: '#2E7D32',
+    backgroundColor: colors.volt,
   },
   buttonPrimaryText: {
-    color: '#fff',
-    fontWeight: '600',
+    color: colors.ink,
+    fontFamily: fonts.bodyBold,
+    letterSpacing: 1,
   },
   primaryButton: {
-    backgroundColor: '#2E7D32',
-    borderRadius: 8,
-    paddingVertical: 12,
-    paddingHorizontal: 24,
+    backgroundColor: colors.volt,
+    borderRadius: radii.tight,
+    paddingVertical: 14,
+    paddingHorizontal: 28,
     marginTop: 8,
   },
   primaryButtonText: {
-    color: '#fff',
-    fontWeight: '600',
+    color: colors.ink,
+    fontFamily: fonts.bodyBold,
+    fontSize: 16,
+    letterSpacing: 1,
   },
 });

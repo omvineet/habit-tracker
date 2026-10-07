@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { Modal, View, Text, TextInput, Pressable, StyleSheet } from 'react-native';
+import { AthleticPress } from './AthleticPress';
+import { colors, fonts, radii } from '../theme';
 
 const EMOJI_CHOICES = ['🧘', '🏃', '📖', '💧', '🥗', '😴', '✍️', '🎯'];
 
@@ -30,20 +32,22 @@ export function AddHabitModal({ visible, onClose, onCreate }: Props) {
   };
 
   return (
-    <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
+    <Modal visible={visible} animationType="fade" transparent onRequestClose={onClose}>
       <View style={styles.backdrop}>
         <View style={styles.sheet}>
+          <Text style={styles.kicker}>NEW CHALLENGE</Text>
           <Text style={styles.heading}>New habit</Text>
 
-          <Text style={styles.label}>Name</Text>
+          <Text style={styles.label}>NAME</Text>
           <TextInput
             style={styles.input}
             placeholder="e.g. Drink 2L water"
+            placeholderTextColor={colors.mute}
             value={name}
             onChangeText={setName}
           />
 
-          <Text style={styles.label}>Icon</Text>
+          <Text style={styles.label}>MARK</Text>
           <View style={styles.emojiRow}>
             {EMOJI_CHOICES.map((e) => (
               <Pressable
@@ -56,21 +60,22 @@ export function AddHabitModal({ visible, onClose, onCreate }: Props) {
             ))}
           </View>
 
-          <Text style={styles.label}>Target days</Text>
+          <Text style={styles.label}>TARGET DAYS</Text>
           <TextInput
             style={styles.input}
             keyboardType="number-pad"
             value={targetDays}
             onChangeText={setTargetDays}
+            placeholderTextColor={colors.mute}
           />
 
           <View style={styles.actions}>
-            <Pressable style={[styles.button, styles.buttonSecondary]} onPress={onClose}>
+            <AthleticPress style={[styles.button, styles.buttonSecondary]} onPress={onClose}>
               <Text style={styles.buttonSecondaryText}>Cancel</Text>
-            </Pressable>
-            <Pressable style={[styles.button, styles.buttonPrimary]} onPress={handleCreate}>
+            </AthleticPress>
+            <AthleticPress style={[styles.button, styles.buttonPrimary]} onPress={handleCreate}>
               <Text style={styles.buttonPrimaryText}>Create</Text>
-            </Pressable>
+            </AthleticPress>
           </View>
         </View>
       </View>
@@ -81,33 +86,46 @@ export function AddHabitModal({ visible, onClose, onCreate }: Props) {
 const styles = StyleSheet.create({
   backdrop: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.4)',
+    backgroundColor: 'rgba(0,0,0,0.72)',
     justifyContent: 'flex-end',
   },
   sheet: {
-    backgroundColor: '#fff',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
+    backgroundColor: colors.asphalt,
+    borderTopWidth: 3,
+    borderTopColor: colors.volt,
     padding: 24,
     gap: 8,
   },
+  kicker: {
+    fontFamily: fonts.bodyBold,
+    fontSize: 12,
+    letterSpacing: 2,
+    color: colors.volt,
+  },
   heading: {
-    fontSize: 20,
-    fontWeight: '700',
+    fontFamily: fonts.display,
+    fontSize: 36,
+    lineHeight: 38,
+    color: colors.chalk,
     marginBottom: 8,
   },
   label: {
+    fontFamily: fonts.bodyBold,
     fontSize: 13,
-    color: '#666',
+    letterSpacing: 1.5,
+    color: colors.mute,
     marginTop: 8,
   },
   input: {
     borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
+    borderColor: colors.line,
+    borderRadius: radii.tight,
     paddingHorizontal: 12,
-    paddingVertical: 10,
+    paddingVertical: 12,
     fontSize: 16,
+    color: colors.chalk,
+    backgroundColor: colors.panel,
+    fontFamily: fonts.body,
   },
   emojiRow: {
     flexDirection: 'row',
@@ -117,15 +135,16 @@ const styles = StyleSheet.create({
   emojiChoice: {
     width: 44,
     height: 44,
-    borderRadius: 8,
+    borderRadius: radii.tight,
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: colors.line,
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: colors.panel,
   },
   emojiChoiceSelected: {
-    borderColor: '#2E7D32',
-    backgroundColor: '#E8F5E9',
+    borderColor: colors.volt,
+    backgroundColor: '#2A330F',
   },
   emojiChoiceText: {
     fontSize: 20,
@@ -137,22 +156,28 @@ const styles = StyleSheet.create({
   },
   button: {
     flex: 1,
-    paddingVertical: 12,
-    borderRadius: 8,
+    paddingVertical: 14,
+    borderRadius: radii.tight,
     alignItems: 'center',
   },
   buttonSecondary: {
-    backgroundColor: '#F0F0F0',
+    backgroundColor: colors.panel,
+    borderWidth: 1,
+    borderColor: colors.line,
   },
   buttonSecondaryText: {
-    color: '#333',
-    fontWeight: '600',
+    color: colors.chalk,
+    fontFamily: fonts.bodyBold,
+    fontSize: 16,
+    letterSpacing: 1,
   },
   buttonPrimary: {
-    backgroundColor: '#2E7D32',
+    backgroundColor: colors.volt,
   },
   buttonPrimaryText: {
-    color: '#fff',
-    fontWeight: '600',
+    color: colors.ink,
+    fontFamily: fonts.bodyBold,
+    fontSize: 16,
+    letterSpacing: 1,
   },
 });
