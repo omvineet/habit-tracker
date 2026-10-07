@@ -1,6 +1,6 @@
 ---
 name: deploy-android
-description: Ship a finished feature of the habit-tracker app to the user's Android phone. Runs checks and tests, handles dependencies and on-device data (AsyncStorage) migrations, decides OTA update vs. new APK build, deploys via EAS, then merges to main. Use when a feature is done and should go live ("deploy this", "ship it", "release to my phone").
+description: Ship a finished feature of the habit-tracker app to the user's Android phone. Runs checks and tests, handles dependencies and on-device data (AsyncStorage) migrations, decides OTA update vs. new APK build, deploys via EAS, then merges to main. Auto-invoke for this repo whenever a feature is finished and npm run check passes — do not wait for "deploy this". Also use when the user says deploy/ship/release to phone.
 ---
 
 # deploy-android
