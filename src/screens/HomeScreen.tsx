@@ -17,7 +17,7 @@ export function HomeScreen({ onOpenHabit, onQuickLog }: Props) {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={StyleSheet.absoluteFill} pointerEvents="none">
+      <View style={[StyleSheet.absoluteFill, styles.atmosphere]}>
         <View style={styles.heroWash} />
         <View style={styles.slash} />
       </View>
@@ -68,6 +68,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.ink,
+  },
+  atmosphere: {
+    pointerEvents: 'none',
   },
   heroWash: {
     position: 'absolute',
