@@ -1,13 +1,15 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, Pressable, ScrollView, StyleSheet, SafeAreaView, Alert, Platform } from 'react-native';
 import { useHabits } from '../HabitsContext';
 import { DayGrid } from '../components/DayGrid';
+import { DayDetailModal } from '../components/DayDetailModal';
 import { ProgressBar } from '../components/ProgressBar';
 import { currentStreak, todayStr, formatNiceDate } from '../utils/date';
 
 export function HabitDetailScreen({ habitId, onBack }: { habitId: string; onBack: () => void }) {
-  const { habits, toggleDate, deleteHabit } = useHabits();
+  const { habits, toggleDate, deleteHabit, updateDay } = useHabits();
   const habit = habits.find((h) => h.id === habitId);
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
 
   if (!habit) {
     return (
@@ -40,6 +42,12 @@ export function HabitDetailScreen({ habitId, onBack }: { habitId: string; onBack
     }
   };
 
+  const logDates = [
+    ...new Set([...Object.keys(habit.notes ?? {}), ...Object.keys(habit.minutes ?? {})]),
+  ]
+    .sort((a, b) => (a < b ? 1 : -1))
+    .slice(0, 10);
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.content}>
@@ -64,34 +72,33 @@ export function HabitDetailScreen({ habitId, onBack }: { habitId: string; onBack
           </Text>
         </Pressable>
 
-        <Text style={styles.sectionTitle}>Progress</Text>
+        <Text style={styles.sectionTitle}>Calendar</Text>
         <DayGrid
           createdAt={habit.createdAt}
-          targetDays={habit.targetDays}
           completedDates={habit.completedDates}
-          onToggle={(d) => toggleDate(habit.id, d)}
+          notes={habit.notes}
+          onSelectDate={setSelectedDate}
         />
-        <Text style={styles.hint}>Tap any past day to toggle it.</Text>
+        <Text style={styles.hint}>Tap a date to mark it done and add a note.</Text>
 
-        {(habit.notes && Object.keys(habit.notes).length > 0) ||
-        (habit.minutes && Object.keys(habit.minutes).length > 0) ? (
+        {logDates.length > 0 ? (
           <>
             <Text style={styles.sectionTitle}>Recent logs</Text>
-            {[...habit.completedDates]
-              .filter((d) => habit.notes?.[d] || habit.minutes?.[d])
-              .sort((a, b) => (a < b ? 1 : -1))
-              .slice(0, 10)
-              .map((d) => (
-                <View key={d} style={styles.logRow}>
-                  <Text style={styles.logDate}>{formatNiceDate(d)}</Text>
-                  <View style={styles.logDetails}>
-                    {habit.minutes?.[d] !== undefined && (
-                      <Text style={styles.logMinutes}>{habit.minutes[d]} min</Text>
-                    )}
-                    {habit.notes?.[d] && <Text style={styles.logNote}>{habit.notes[d]}</Text>}
-                  </View>
+            {logDates.map((d) => (
+              <Pressable key={d} style={styles.logRow} onPress={() => setSelectedDate(d)}>
+                <Text style={styles.logDate}>{formatNiceDate(d)}</Text>
+                <View style={styles.logDetails}>
+                  {habit.minutes?.[d] !== undefined && (
+                    <Text style={styles.logMinutes}>{habit.minutes[d]} min</Text>
+                  )}
+                  {habit.notes?.[d] ? (
+                    <Text style={styles.logNote}>{habit.notes[d]}</Text>
+                  ) : (
+                    <Text style={styles.logNoteEmpty}>No note</Text>
+                  )}
                 </View>
-              ))}
+              </Pressable>
+            ))}
           </>
         ) : null}
 
@@ -99,6 +106,17 @@ export function HabitDetailScreen({ habitId, onBack }: { habitId: string; onBack
           <Text style={styles.deleteButtonText}>Delete habit</Text>
         </Pressable>
       </ScrollView>
+
+      <DayDetailModal
+        visible={selectedDate != null}
+        dateStr={selectedDate}
+        completed={selectedDate ? habit.completedDates.includes(selectedDate) : false}
+        note={selectedDate ? (habit.notes?.[selectedDate] ?? '') : ''}
+        onClose={() => setSelectedDate(null)}
+        onSave={(details) => {
+          if (selectedDate) updateDay(habit.id, selectedDate, details);
+        }}
+      />
     </SafeAreaView>
   );
 }
@@ -187,5 +205,10 @@ const styles = StyleSheet.create({
   logNote: {
     fontSize: 13,
     color: '#444',
+  },
+  logNoteEmpty: {
+    fontSize: 13,
+    color: '#bbb',
+    fontStyle: 'italic',
   },
 });

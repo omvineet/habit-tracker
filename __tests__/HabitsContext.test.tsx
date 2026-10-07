@@ -141,6 +141,44 @@ describe('HabitsProvider', () => {
     await act(async () => result.current.logEntry('missing', TODAY, { minutes: 5 }));
     expect(result.current.habits).toEqual([YOGA]);
   });
+
+  it('updateDay sets completed + note, and clearing the note removes it', async () => {
+    await seedStorage([makeHabit()]);
+    const { result } = await renderHabits();
+
+    await act(async () =>
+      result.current.updateDay('h1', '2026-03-10', { completed: true, note: 'chapter 2' })
+    );
+    expect(result.current.habits[0]).toMatchObject({
+      completedDates: ['2026-03-10'],
+      notes: { '2026-03-10': 'chapter 2' },
+    });
+
+    await act(async () =>
+      result.current.updateDay('h1', '2026-03-10', { completed: false, note: '' })
+    );
+    expect(result.current.habits[0].completedDates).toEqual([]);
+    expect(result.current.habits[0].notes).toEqual({});
+    expect((await readStorage())?.[0].notes).toEqual({});
+  });
+
+  it('updateDay can keep a note while un-marking the day', async () => {
+    await seedStorage([
+      makeHabit({
+        completedDates: ['2026-03-10'],
+        notes: { '2026-03-10': 'keep me' },
+      }),
+    ]);
+    const { result } = await renderHabits();
+
+    await act(async () =>
+      result.current.updateDay('h1', '2026-03-10', { completed: false, note: 'keep me' })
+    );
+    expect(result.current.habits[0]).toMatchObject({
+      completedDates: [],
+      notes: { '2026-03-10': 'keep me' },
+    });
+  });
 });
 
 describe('useHabits', () => {

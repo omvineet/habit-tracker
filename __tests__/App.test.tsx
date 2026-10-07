@@ -129,17 +129,28 @@ describe('Habit detail screen', () => {
     expect(screen.getByText('0/30 days complete · 🔥 0 day streak')).toBeOnTheScreen();
   });
 
-  it('toggles a past day from the grid and persists it', async () => {
+  it('marks a past calendar date done with a note and persists both', async () => {
     await openReadBooks();
 
-    await fireEvent.press(screen.getByText('10')); // 2026-03-10
+    await fireEvent.press(screen.getByLabelText('2026-03-10'));
+    expect(screen.getByPlaceholderText('How did it go?')).toBeOnTheScreen();
+
+    await fireEvent(screen.getByLabelText('Mark day done'), 'valueChange', true);
+    await fireEvent.changeText(screen.getByPlaceholderText('How did it go?'), 'finished chapter 3');
+    await fireEvent.press(screen.getByText('Save'));
+
     expect(screen.getByText('1/30 days complete · 🔥 0 day streak')).toBeOnTheScreen();
-    expect((await readStorage())![0].completedDates).toEqual(['2026-03-10']);
+    expect(screen.getByText('finished chapter 3')).toBeOnTheScreen();
+    expect((await readStorage())![0]).toMatchObject({
+      completedDates: ['2026-03-10'],
+      notes: { '2026-03-10': 'finished chapter 3' },
+    });
   });
 
   it('does not allow marking future days', async () => {
     await openReadBooks();
-    await fireEvent.press(screen.getByText('16')); // 2026-03-16 (tomorrow)
+    await fireEvent.press(screen.getByLabelText('2026-03-16')); // tomorrow
+    expect(screen.queryByPlaceholderText('How did it go?')).not.toBeOnTheScreen();
     expect(screen.getByText('0/30 days complete · 🔥 0 day streak')).toBeOnTheScreen();
   });
 
@@ -157,6 +168,24 @@ describe('Habit detail screen', () => {
     const minutes = screen.getAllByText(/^\d+ min$/).map((n) => n.props.children.join(''));
     expect(minutes).toEqual(['25 min', '10 min']);
     expect(screen.getByText('great chapter')).toBeOnTheScreen();
+  });
+
+  it('edits an existing note from a recent log row', async () => {
+    await seedStorage([
+      makeHabit({
+        completedDates: ['2026-03-14'],
+        notes: { '2026-03-14': 'draft note' },
+      }),
+    ]);
+    await openReadBooks();
+
+    await fireEvent.press(screen.getByText('draft note'));
+    await fireEvent.changeText(screen.getByPlaceholderText('How did it go?'), 'polished note');
+    await fireEvent.press(screen.getByText('Save'));
+
+    expect(screen.getByText('polished note')).toBeOnTheScreen();
+    expect(screen.queryByText('draft note')).not.toBeOnTheScreen();
+    expect((await readStorage())![0].notes).toEqual({ '2026-03-14': 'polished note' });
   });
 
   it('goes back to the home screen', async () => {

@@ -10,6 +10,7 @@ type HabitsContextValue = {
   deleteHabit: (id: string) => void;
   toggleDate: (id: string, dateStr: string) => void;
   logEntry: (id: string, dateStr: string, details: { minutes?: number; note?: string }) => void;
+  updateDay: (id: string, dateStr: string, details: { completed: boolean; note: string }) => void;
 };
 
 const HabitsContext = createContext<HabitsContextValue | undefined>(undefined);
@@ -89,9 +90,31 @@ export function HabitsProvider({ children }: { children: React.ReactNode }) {
     [habits, persist]
   );
 
+  const updateDay = useCallback(
+    (id: string, dateStr: string, details: { completed: boolean; note: string }) => {
+      persist(
+        habits.map((h) => {
+          if (h.id !== id) return h;
+          const has = h.completedDates.includes(dateStr);
+          let completedDates = h.completedDates;
+          if (details.completed && !has) {
+            completedDates = [...h.completedDates, dateStr].sort();
+          } else if (!details.completed && has) {
+            completedDates = h.completedDates.filter((d) => d !== dateStr);
+          }
+          const notes = { ...h.notes };
+          if (details.note) notes[dateStr] = details.note;
+          else delete notes[dateStr];
+          return { ...h, completedDates, notes };
+        })
+      );
+    },
+    [habits, persist]
+  );
+
   return (
     <HabitsContext.Provider
-      value={{ habits, loading, addHabit, deleteHabit, toggleDate, logEntry }}
+      value={{ habits, loading, addHabit, deleteHabit, toggleDate, logEntry, updateDay }}
     >
       {children}
     </HabitsContext.Provider>
