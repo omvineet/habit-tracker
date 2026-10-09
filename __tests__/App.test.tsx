@@ -1,5 +1,5 @@
 import React from 'react';
-import { Alert } from 'react-native';
+import { Alert, Linking } from 'react-native';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import App from '../App';
 import { makeHabit, NOW, readStorage, RUN, seedStorage, TODAY, YOGA } from './helpers';
@@ -316,5 +316,77 @@ describe('Quick Log (typed entry)', () => {
     await fireEvent.press(screen.getByText('Close'));
     expect(await screen.findByText('My Habits')).toBeOnTheScreen();
     expect((await readStorage())!.every((h) => h.completedDates.length === 0)).toBe(true);
+  });
+});
+
+describe('Assistant deep links (App Actions)', () => {
+  let initialUrl: jest.SpyInstance;
+  let urlListener: ((event: { url: string }) => void) | undefined;
+
+  beforeEach(async () => {
+    await seedStorage([YOGA, RUN]);
+    urlListener = undefined;
+    initialUrl = jest.spyOn(Linking, 'getInitialURL').mockResolvedValue(null);
+    jest.spyOn(Linking, 'addEventListener').mockImplementation(((
+      _type: string,
+      cb: (event: { url: string }) => void
+    ) => {
+      urlListener = cb;
+      return { remove: () => (urlListener = undefined) };
+    }) as any);
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  async function receive(url: string) {
+    await act(async () => urlListener!({ url }));
+  }
+
+  it('cold start: opens Quick Log from an OPEN_APP_FEATURE link', async () => {
+    initialUrl.mockResolvedValue('habittracker://open?feature=quick_log');
+    await render(<App />);
+    expect(await screen.findByText('What did you do?')).toBeOnTheScreen();
+  });
+
+  it('cold start: opens the matching habit once habits have loaded', async () => {
+    initialUrl.mockResolvedValue('habittracker://habit?name=run');
+    await render(<App />);
+    expect(await screen.findByText('Mark today done')).toBeOnTheScreen();
+    expect(screen.getByText('Morning Run')).toBeOnTheScreen();
+  });
+
+  it('warm start: a CREATE_THING link lands on the review step and can be saved', async () => {
+    await renderApp();
+    await receive('habittracker://log?name=yoga&description=20%20minutes');
+
+    expect(await screen.findByText('Log 20 min 100 Days of Yoga?')).toBeOnTheScreen();
+    await fireEvent.press(screen.getByText('Save now'));
+    expect(screen.getByText('Logged!')).toBeOnTheScreen();
+
+    const yoga = (await readStorage())!.find((h) => h.id === 'yoga')!;
+    expect(yoga.minutes).toEqual({ [TODAY]: 20 });
+  });
+
+  it('a log link that matches no habit lets the user fix the text instead of saving', async () => {
+    await renderApp();
+    await receive('habittracker://log?name=swimming');
+    expect(await screen.findByText('Couldn\'t match "swimming" to one of your habits.')).toBeOnTheScreen();
+    await advance(10000);
+    expect((await readStorage())!.every((h) => h.completedDates.length === 0)).toBe(true);
+  });
+
+  it('an unknown habit falls back to the home screen', async () => {
+    await renderApp();
+    await receive('habittracker://habit?name=swimming');
+    expect(await screen.findByText('My Habits')).toBeOnTheScreen();
+  });
+
+  it('ignores links that are not for this app', async () => {
+    await renderApp();
+    await receive('https://example.com/open?feature=quick_log');
+    expect(screen.getByText('My Habits')).toBeOnTheScreen();
+    expect(screen.queryByText('What did you do?')).not.toBeOnTheScreen();
   });
 });

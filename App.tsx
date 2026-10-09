@@ -11,12 +11,9 @@ import { HabitsProvider } from './src/HabitsContext';
 import { HomeScreen } from './src/screens/HomeScreen';
 import { HabitDetailScreen } from './src/screens/HabitDetailScreen';
 import { QuickLogScreen } from './src/screens/QuickLogScreen';
+import { AppLinkHandler } from './src/AppLinkHandler';
+import { Route } from './src/navigation';
 import { colors } from './src/theme';
-
-type Route =
-  | { screen: 'home' }
-  | { screen: 'detail'; habitId: string }
-  | { screen: 'quicklog' };
 
 export default function App() {
   const [route, setRoute] = useState<Route>({ screen: 'home' });
@@ -38,6 +35,7 @@ export default function App() {
 
   return (
     <HabitsProvider>
+      <AppLinkHandler onRoute={setRoute} />
       {route.screen === 'home' && (
         <HomeScreen
           onOpenHabit={(habitId) => setRoute({ screen: 'detail', habitId })}
@@ -47,7 +45,9 @@ export default function App() {
       {route.screen === 'detail' && (
         <HabitDetailScreen habitId={route.habitId} onBack={goHome} />
       )}
-      {route.screen === 'quicklog' && <QuickLogScreen onDone={goHome} />}
+      {route.screen === 'quicklog' && (
+        <QuickLogScreen key={route.linkId} initialText={route.initialText} onDone={goHome} />
+      )}
       <StatusBar style="light" />
     </HabitsProvider>
   );

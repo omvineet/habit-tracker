@@ -57,6 +57,28 @@ This runs `eas update`, which uploads your latest JS/TS changes to the `preview`
 
 A full rebuild (`eas build -p android --profile preview`) is only needed again if you add a new native module (like a different native library) — everyday feature/UI changes just need `npm run deploy`.
 
+## Assistant integration (Android App Actions)
+
+Google Assistant (and long-pressing the launcher icon) can trigger features directly. This uses **App Actions** — `shortcuts.xml` with built-in intents (BIIs) — generated at build time by the config plugin `plugins/withAppActions.js`. (Android AppFunctions is not used: it needs Android 16+ and hand-written Kotlin, and this app's data lives in JS `AsyncStorage`.)
+
+| Built-in intent | Example request | Deep link | Result |
+| --- | --- | --- | --- |
+| `OPEN_APP_FEATURE` | "Open Quick Log in habit-tracker" / "Show my habits in habit-tracker" | `habittracker://open?feature=quick_log` / `habits` | Opens that screen |
+| `GET_THING` | "Find yoga in habit-tracker" | `habittracker://habit?name=yoga` | Opens the matching habit (home if none) |
+| `CREATE_THING` | "Save 20 minutes of yoga to habit-tracker" | `habittracker://log?name=yoga&description=20%20minutes` | Opens Quick Log on the review step, with the usual cancellable auto-save countdown |
+
+The same `shortcuts.xml` also defines **Quick Log** and **My Habits** launcher shortcuts (long-press the app icon). They work with no Google setup, so they are the easiest way to verify the plumbing. Test deep links without Assistant:
+
+```bash
+adb shell am start -a android.intent.action.VIEW -d "habittracker://log?name=yoga\&description=20%20minutes" com.sevalabs.habittracker
+```
+
+Notes:
+
+- This is a native change (new URL scheme, `shortcuts.xml`, manifest meta-data), so it ships in a new APK, not an OTA update.
+- Assistant only invokes BIIs for apps it knows from Google Play; a sideloaded APK works for launcher shortcuts and `adb` links, but voice triggering needs the [App Actions test tool](https://developer.android.com/develop/devices/assistants/google-assistant/app-actions/test-tool) (Android Studio plugin) or a Play-distributed build.
+- Adding features: edit `plugins/appActionsResources.js`, handle the link in `src/utils/appLink.ts` / `src/navigation.ts`.
+
 ## Tests
 
 Both `npm run deploy` and `npm run build:local` first run `npm run check` (TypeScript + the full Jest suite) and stop if anything fails, so a broken build never reaches your phone.
@@ -72,19 +94,24 @@ Tests live in `__tests__/` and use `jest-expo` with React Native Testing Library
 - `date`, `parseLogEntry`, `storage` — pure logic: streaks, date math, voice-entry parsing, persistence/seeding
 - `HabitsContext` — add / delete / toggle / log state changes and that they're saved
 - `App` — full user flows through the real screens: adding habits, the day grid, deleting, typed Quick Log with auto-save
+- `appLink`, `appActionsPlugin` — deep-link parsing/routing and the generated `shortcuts.xml` resources
 - `QuickLogSpeech` — the voice flow against a fake speech-recognition module (permissions, live transcript, errors)
 
 ## Project structure
 
 ```
+plugins/                   # Expo config plugin generating App Actions shortcuts.xml
 App.tsx                    # navigation (home <-> habit detail <-> quick log)
 src/
   types.ts                 # Habit + ParsedLogEntry types
   storage.ts                # AsyncStorage load/save + seed data
   HabitsContext.tsx         # global habit state (add/delete/toggle/logEntry)
+  AppLinkHandler.tsx        # deep links (Assistant / shortcuts) -> navigation
+  navigation.ts             # Route type + deep link -> route resolution
   utils/
     date.ts                  # date + streak helpers
     parseLogEntry.ts          # free-text -> {habit, minutes, note} parser
+    appLink.ts                # habittracker:// deep link parser
   components/
     HabitCard.tsx
     ProgressBar.tsx

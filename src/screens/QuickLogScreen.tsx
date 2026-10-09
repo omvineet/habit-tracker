@@ -30,11 +30,19 @@ try {
 
 type Stage = 'listening' | 'review' | 'saved';
 
-export function QuickLogScreen({ onDone }: { onDone: () => void }) {
+type Props = {
+  onDone: () => void;
+  // Pre-filled entry (e.g. from an assistant request); skips listening and goes straight to review.
+  initialText?: string;
+};
+
+export function QuickLogScreen({ onDone, initialText }: Props) {
   const { habits, logEntry } = useHabits();
-  const [stage, setStage] = useState<Stage>(SpeechModule ? 'listening' : 'review');
-  const [transcript, setTranscript] = useState('');
-  const [parsed, setParsed] = useState<ParsedLogEntry | null>(null);
+  const [stage, setStage] = useState<Stage>(SpeechModule && !initialText ? 'listening' : 'review');
+  const [transcript, setTranscript] = useState(initialText ?? '');
+  const [parsed, setParsed] = useState<ParsedLogEntry | null>(() =>
+    initialText ? parseLogEntry(initialText, habits) : null
+  );
   const [countdown, setCountdown] = useState(AUTO_CONFIRM_SECONDS);
   const [speechError, setSpeechError] = useState<string | null>(null);
   const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -42,7 +50,7 @@ export function QuickLogScreen({ onDone }: { onDone: () => void }) {
   // Wire up native speech recognition events via direct listeners (avoids
   // conditionally calling the library's hook, which isn't allowed).
   useEffect(() => {
-    if (!SpeechModule) return;
+    if (!SpeechModule || initialText) return;
     let cancelled = false;
 
     (async () => {
