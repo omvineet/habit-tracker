@@ -1,32 +1,27 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { View, ActivityIndicator, StyleSheet } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
+import * as Linking from 'expo-linking';
 import { useFonts, BebasNeue_400Regular } from '@expo-google-fonts/bebas-neue';
 import {
   BarlowCondensed_400Regular,
   BarlowCondensed_500Medium,
   BarlowCondensed_700Bold,
 } from '@expo-google-fonts/barlow-condensed';
-import { HabitsProvider } from './src/HabitsContext';
+import { HabitsProvider, useHabits } from './src/HabitsContext';
 import { HomeScreen } from './src/screens/HomeScreen';
 import { HabitDetailScreen } from './src/screens/HabitDetailScreen';
 import { QuickLogScreen } from './src/screens/QuickLogScreen';
 import { colors } from './src/theme';
-
-type Route =
-  | { screen: 'home' }
-  | { screen: 'detail'; habitId: string }
-  | { screen: 'quicklog' };
+import { AppRoute, parseAssistantUrl, resolveAssistantAction } from './src/utils/assistantActions';
 
 export default function App() {
-  const [route, setRoute] = useState<Route>({ screen: 'home' });
   const [fontsLoaded] = useFonts({
     BebasNeue_400Regular,
     BarlowCondensed_400Regular,
     BarlowCondensed_500Medium,
     BarlowCondensed_700Bold,
   });
-  const goHome = () => setRoute({ screen: 'home' });
 
   if (!fontsLoaded) {
     return (
@@ -38,18 +33,44 @@ export default function App() {
 
   return (
     <HabitsProvider>
+      <AppNavigator />
+      <StatusBar style="light" />
+    </HabitsProvider>
+  );
+}
+
+function AppNavigator() {
+  const linkingUrl = Linking.useLinkingURL();
+  const { habits, loading } = useHabits();
+  const [route, setRoute] = useState<AppRoute>({ screen: 'home' });
+  const handledUrl = useRef<string | null>(null);
+  const goHome = () => setRoute({ screen: 'home' });
+
+  useEffect(() => {
+    if (!linkingUrl || linkingUrl === handledUrl.current || loading) return;
+    const action = parseAssistantUrl(linkingUrl);
+    if (!action) return;
+    handledUrl.current = linkingUrl;
+    setRoute(resolveAssistantAction(action, habits));
+  }, [linkingUrl, loading, habits]);
+
+  return (
+    <>
       {route.screen === 'home' && (
         <HomeScreen
           onOpenHabit={(habitId) => setRoute({ screen: 'detail', habitId })}
           onQuickLog={() => setRoute({ screen: 'quicklog' })}
+          openAdd={route.openAdd}
+          addName={route.addName}
         />
       )}
       {route.screen === 'detail' && (
         <HabitDetailScreen habitId={route.habitId} onBack={goHome} />
       )}
-      {route.screen === 'quicklog' && <QuickLogScreen onDone={goHome} />}
-      <StatusBar style="light" />
-    </HabitsProvider>
+      {route.screen === 'quicklog' && (
+        <QuickLogScreen onDone={goHome} seedText={route.seedText} />
+      )}
+    </>
   );
 }
 

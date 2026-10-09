@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  App Actions capabilities for Google Assistant / system assistants.
+  Fulfillment uses custom-scheme deep links handled in JS (src/utils/assistantActions.ts).
+-->
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <!--
+      OPEN_APP_FEATURE is required to use inline inventory for `feature`.
+      "Open Quick Log on habit tracker" / "Show add habit on habit tracker"
+    -->
+    <capability android:name="actions.intent.OPEN_APP_FEATURE">
+        <intent>
+            <url-template android:value="habittracker://feature{?feature}" />
+            <parameter
+                android:name="feature"
+                android:key="feature"
+                android:required="true" />
+        </intent>
+        <!-- Fallback when the user does not name a feature. -->
+        <intent>
+            <url-template android:value="habittracker://home" />
+        </intent>
+    </capability>
+
+    <!-- "Search for yoga on habit tracker" -->
+    <capability android:name="actions.intent.GET_THING">
+        <intent>
+            <url-template android:value="habittracker://search{?name}" />
+            <parameter
+                android:name="thing.name"
+                android:key="name"
+                android:required="true" />
+        </intent>
+        <intent>
+            <url-template android:value="habittracker://home" />
+        </intent>
+    </capability>
+
+    <!-- "Add meditation to habit tracker" -->
+    <capability android:name="actions.intent.CREATE_THING">
+        <intent>
+            <url-template android:value="habittracker://add{?name,description}" />
+            <parameter
+                android:name="thing.name"
+                android:key="name"
+                android:required="true" />
+            <parameter
+                android:name="thing.description"
+                android:key="description" />
+        </intent>
+        <intent>
+            <url-template android:value="habittracker://add" />
+        </intent>
+    </capability>
+
+    <!-- "Record 15 minute yoga on habit tracker" -->
+    <capability android:name="actions.intent.RECORD_EXERCISE">
+        <intent>
+            <url-template android:value="habittracker://log{?name,duration}" />
+            <parameter
+                android:name="exercise.name"
+                android:key="name"
+                android:required="true" />
+            <parameter
+                android:name="exercise.duration"
+                android:key="duration" />
+        </intent>
+        <intent>
+            <url-template android:value="habittracker://log" />
+        </intent>
+    </capability>
+
+    <!--
+      Custom intent for habit logging that does not map cleanly to a BII.
+      Query patterns are the phrase AFTER "open habit tracker and …"
+    -->
+    <capability
+        android:name="custom.actions.intent.LOG_HABIT"
+        app:queryPatterns="@array/logHabitQueries">
+        <intent>
+            <url-template android:value="habittracker://log{?habit,minutes}" />
+            <parameter
+                android:name="habit"
+                android:key="habit"
+                android:mimeType="https://schema.org/Text" />
+            <parameter
+                android:name="minutes"
+                android:key="minutes"
+                android:mimeType="https://schema.org/Number" />
+        </intent>
+        <intent>
+            <url-template android:value="habittracker://log" />
+        </intent>
+    </capability>
+
+    <!-- Launcher long-press + OPEN_APP_FEATURE inventory: Quick Log -->
+    <shortcut
+        android:shortcutId="quick_log"
+        android:enabled="true"
+        android:icon="@mipmap/ic_launcher"
+        android:shortcutShortLabel="@string/shortcut_quick_log_short"
+        android:shortcutLongLabel="@string/shortcut_quick_log_long">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="com.sevalabs.habittracker"
+            android:targetClass="com.sevalabs.habittracker.MainActivity"
+            android:data="habittracker://log" />
+        <capability-binding android:key="actions.intent.OPEN_APP_FEATURE">
+            <parameter-binding
+                android:key="feature"
+                android:value="@array/feature_quick_log_synonyms" />
+        </capability-binding>
+    </shortcut>
+
+    <!-- Launcher long-press + OPEN_APP_FEATURE inventory: Add habit -->
+    <shortcut
+        android:shortcutId="add_habit"
+        android:enabled="true"
+        android:icon="@mipmap/ic_launcher"
+        android:shortcutShortLabel="@string/shortcut_add_habit_short"
+        android:shortcutLongLabel="@string/shortcut_add_habit_long">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="com.sevalabs.habittracker"
+            android:targetClass="com.sevalabs.habittracker.MainActivity"
+            android:data="habittracker://add" />
+        <capability-binding android:key="actions.intent.OPEN_APP_FEATURE">
+            <parameter-binding
+                android:key="feature"
+                android:value="@array/feature_add_habit_synonyms" />
+        </capability-binding>
+    </shortcut>
+
+    <!-- Entity-only inventory for "open home / my habits" -->
+    <shortcut android:shortcutId="home">
+        <capability-binding android:key="actions.intent.OPEN_APP_FEATURE">
+            <parameter-binding
+                android:key="feature"
+                android:value="@array/feature_home_synonyms" />
+        </capability-binding>
+    </shortcut>
+</shortcuts>

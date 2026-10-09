@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, StyleSheet, SafeAreaView } from 'react-native';
 import { useHabits } from '../HabitsContext';
 import { HabitCard } from '../components/HabitCard';
@@ -9,11 +9,17 @@ import { colors, fonts, radii } from '../theme';
 type Props = {
   onOpenHabit: (id: string) => void;
   onQuickLog: () => void;
+  openAdd?: boolean;
+  addName?: string;
 };
 
-export function HomeScreen({ onOpenHabit, onQuickLog }: Props) {
+export function HomeScreen({ onOpenHabit, onQuickLog, openAdd, addName }: Props) {
   const { habits, loading, addHabit } = useHabits();
-  const [showAdd, setShowAdd] = useState(false);
+  const [showAdd, setShowAdd] = useState(!!openAdd);
+
+  useEffect(() => {
+    if (openAdd) setShowAdd(true);
+  }, [openAdd, addName]);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -59,7 +65,12 @@ export function HomeScreen({ onOpenHabit, onQuickLog }: Props) {
         <Text style={styles.quickLogIcon}>🎙️</Text>
       </AthleticPress>
 
-      <AddHabitModal visible={showAdd} onClose={() => setShowAdd(false)} onCreate={addHabit} />
+      <AddHabitModal
+        visible={showAdd}
+        onClose={() => setShowAdd(false)}
+        onCreate={addHabit}
+        initialName={addName}
+      />
     </SafeAreaView>
   );
 }

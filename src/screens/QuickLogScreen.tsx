@@ -30,19 +30,39 @@ try {
 
 type Stage = 'listening' | 'review' | 'saved';
 
-export function QuickLogScreen({ onDone }: { onDone: () => void }) {
+export function QuickLogScreen({
+  onDone,
+  seedText,
+}: {
+  onDone: () => void;
+  seedText?: string;
+}) {
   const { habits, logEntry } = useHabits();
-  const [stage, setStage] = useState<Stage>(SpeechModule ? 'listening' : 'review');
-  const [transcript, setTranscript] = useState('');
-  const [parsed, setParsed] = useState<ParsedLogEntry | null>(null);
+  const seeded = seedText?.trim() ?? '';
+  const [stage, setStage] = useState<Stage>(() =>
+    seeded || !SpeechModule ? 'review' : 'listening'
+  );
+  const [transcript, setTranscript] = useState(seeded);
+  const [parsed, setParsed] = useState<ParsedLogEntry | null>(() => {
+    if (!seeded) return null;
+    const next = parseLogEntry(seeded, habits);
+    return next.habitId ? next : null;
+  });
   const [countdown, setCountdown] = useState(AUTO_CONFIRM_SECONDS);
   const [speechError, setSpeechError] = useState<string | null>(null);
   const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
+  useEffect(() => {
+    if (!seeded || parsed?.habitId) return;
+    if (habits.length === 0) return;
+    const next = parseLogEntry(seeded, habits);
+    if (next.habitId) setParsed(next);
+  }, [habits, seeded, parsed?.habitId]);
+
   // Wire up native speech recognition events via direct listeners (avoids
   // conditionally calling the library's hook, which isn't allowed).
   useEffect(() => {
-    if (!SpeechModule) return;
+    if (!SpeechModule || seeded) return;
     let cancelled = false;
 
     (async () => {

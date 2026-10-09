@@ -21,6 +21,10 @@ jest.mock('expo-font', () => ({
   loadAsync: async () => {},
 }));
 
+jest.mock('expo-linking', () => ({
+  useLinkingURL: jest.fn(() => null),
+}));
+
 beforeEach(async () => {
   await AsyncStorage.clear();
 });

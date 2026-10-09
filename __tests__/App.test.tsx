@@ -1,8 +1,11 @@
 import React from 'react';
 import { Alert } from 'react-native';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
+import * as Linking from 'expo-linking';
 import App from '../App';
 import { makeHabit, NOW, readStorage, RUN, seedStorage, TODAY, YOGA } from './helpers';
+
+const useLinkingURL = Linking.useLinkingURL as jest.Mock;
 
 // Simulate a build without the native speech module (Expo Go / web), so Quick Log
 // falls back to typed entry. The speech path is covered in QuickLogSpeech.test.tsx.
@@ -12,6 +15,7 @@ jest.mock('expo-speech-recognition', () => {
 
 beforeEach(() => {
   jest.useFakeTimers({ now: NOW });
+  useLinkingURL.mockReturnValue(null);
 });
 
 afterEach(() => {
@@ -318,3 +322,36 @@ describe('Quick Log (typed entry)', () => {
     expect((await readStorage())!.every((h) => h.completedDates.length === 0)).toBe(true);
   });
 });
+
+describe('Assistant App Actions deep links', () => {
+  it('opens Quick Log from OPEN_APP_FEATURE / launcher shortcut', async () => {
+    useLinkingURL.mockReturnValue('habittracker://log');
+    await seedStorage([YOGA]);
+    await render(<App />);
+    expect(await screen.findByText('What did you do?')).toBeOnTheScreen();
+  });
+
+  it('prefills Quick Log from RECORD_EXERCISE duration and name', async () => {
+    useLinkingURL.mockReturnValue('habittracker://log?name=yoga&duration=PT20M');
+    await seedStorage([YOGA, RUN]);
+    await render(<App />);
+    expect(await screen.findByText('Log 20 min 100 Days of Yoga?')).toBeOnTheScreen();
+  });
+
+  it('opens the add-habit sheet from CREATE_THING with a name', async () => {
+    useLinkingURL.mockReturnValue('habittracker://add?name=Meditation');
+    await seedStorage([YOGA]);
+    await render(<App />);
+    expect(await screen.findByText('New habit')).toBeOnTheScreen();
+    expect(screen.getByDisplayValue('Meditation')).toBeOnTheScreen();
+  });
+
+  it('opens a matching habit from GET_THING', async () => {
+    useLinkingURL.mockReturnValue('habittracker://search?name=yoga');
+    await seedStorage([YOGA, RUN]);
+    await render(<App />);
+    expect(await screen.findByText('Mark today done')).toBeOnTheScreen();
+    expect(screen.getByText('100 Days of Yoga')).toBeOnTheScreen();
+  });
+});
+

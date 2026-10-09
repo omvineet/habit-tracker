@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="feature_quick_log_synonyms">
+        <item>Quick Log</item>
+        <item>log</item>
+        <item>voice log</item>
+        <item>record</item>
+        <item>mic</item>
+    </string-array>
+    <string-array name="feature_add_habit_synonyms">
+        <item>Add habit</item>
+        <item>new habit</item>
+        <item>create habit</item>
+        <item>add</item>
+    </string-array>
+    <string-array name="feature_home_synonyms">
+        <item>Home</item>
+        <item>habits</item>
+        <item>my habits</item>
+        <item>home screen</item>
+    </string-array>
+    <!-- Phrases after "open habit tracker and …" / "use habit tracker to …" -->
+    <string-array name="logHabitQueries">
+        <item>log $habit</item>
+        <item>log $habit done</item>
+        <item>mark $habit done</item>
+        <item>record $habit</item>
+        <item>log $minutes minutes of $habit</item>
+        <item>log $habit for $minutes minutes</item>
+        <item>record $minutes minutes of $habit</item>
+    </string-array>
+</resources>

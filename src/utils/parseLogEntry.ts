@@ -11,7 +11,7 @@ function habitSearchTerms(habit: Habit): string[] {
   return [...nameWords, ...keywords];
 }
 
-function findBestHabitMatch(text: string, habits: Habit[]): Habit | null {
+export function findBestHabitMatch(text: string, habits: Habit[]): Habit | null {
   const lower = text.toLowerCase();
   let best: { habit: Habit; score: number } | null = null;
   for (const habit of habits) {
