@@ -8,15 +8,18 @@ const values: string = buildValuesXml();
 
 describe('App Actions resources', () => {
   it('declares the built-in intents the app handles', () => {
-    for (const bii of ['OPEN_APP_FEATURE', 'GET_THING', 'CREATE_THING']) {
+    for (const bii of ['OPEN_APP_FEATURE', 'GET_THING', 'CREATE_THING', 'RECORD_EXERCISE']) {
       expect(shortcuts).toContain(`<capability android:name="actions.intent.${bii}">`);
     }
+    expect(shortcuts).toContain('custom.actions.intent.LOG_HABIT');
   });
 
   it('fulfils via deep links on the configured scheme and MainActivity', () => {
     expect(shortcuts).toContain('myscheme://open{?feature}');
     expect(shortcuts).toContain('myscheme://habit{?name}');
     expect(shortcuts).toContain('myscheme://log{?name,description}');
+    expect(shortcuts).toContain('myscheme://log{?name,duration}');
+    expect(shortcuts).toContain('myscheme://log{?habit,minutes}');
     expect(shortcuts).toContain('android:targetClass="com.example.app.MainActivity"');
     expect(shortcuts).not.toContain('habittracker');
   });

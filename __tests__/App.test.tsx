@@ -389,4 +389,17 @@ describe('Assistant deep links (App Actions)', () => {
     expect(screen.getByText('My Habits')).toBeOnTheScreen();
     expect(screen.queryByText('What did you do?')).not.toBeOnTheScreen();
   });
+
+  it('opens the add-habit sheet from OPEN_APP_FEATURE', async () => {
+    await renderApp();
+    await receive('habittracker://add?name=Meditation');
+    expect(await screen.findByText('New habit')).toBeOnTheScreen();
+    expect(screen.getByDisplayValue('Meditation')).toBeOnTheScreen();
+  });
+
+  it('prefills Quick Log from a RECORD_EXERCISE duration', async () => {
+    await renderApp();
+    await receive('habittracker://log?name=yoga&duration=PT20M');
+    expect(await screen.findByText('Log 20 min 100 Days of Yoga?')).toBeOnTheScreen();
+  });
 });

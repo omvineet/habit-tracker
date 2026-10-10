@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Modal, View, Text, TextInput, Pressable, StyleSheet } from 'react-native';
 import { AthleticPress } from './AthleticPress';
 import { colors, fonts, radii } from '../theme';
@@ -9,12 +9,17 @@ type Props = {
   visible: boolean;
   onClose: () => void;
   onCreate: (name: string, emoji: string, targetDays: number) => void;
+  initialName?: string;
 };
 
-export function AddHabitModal({ visible, onClose, onCreate }: Props) {
-  const [name, setName] = useState('');
+export function AddHabitModal({ visible, onClose, onCreate, initialName }: Props) {
+  const [name, setName] = useState(initialName ?? '');
   const [emoji, setEmoji] = useState(EMOJI_CHOICES[0]);
   const [targetDays, setTargetDays] = useState('30');
+
+  useEffect(() => {
+    if (visible && initialName) setName(initialName);
+  }, [visible, initialName]);
 
   const reset = () => {
     setName('');

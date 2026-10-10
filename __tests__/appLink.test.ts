@@ -1,4 +1,4 @@
-import { parseAppLink } from '../src/utils/appLink';
+import { isoDurationToMinutes, parseAppLink } from '../src/utils/appLink';
 import { resolveAppLink } from '../src/navigation';
 import { RUN, YOGA } from './helpers';
 
@@ -11,7 +11,12 @@ describe('parseAppLink', () => {
     ['habittracker://habit?name=yoga', { type: 'habit', query: 'yoga' }],
     ['habittracker://habit?name=morning+run', { type: 'habit', query: 'morning run' }],
     ['habittracker://habit', { type: 'open', feature: 'home' }],
+    ['habittracker://open?feature=add_habit', { type: 'open', feature: 'add' }],
+    ['habittracker://add?name=Meditation', { type: 'add', name: 'Meditation' }],
+    ['habittracker://add', { type: 'open', feature: 'add' }],
     ['habittracker://log?name=yoga&description=20%20minutes', { type: 'log', text: 'yoga 20 minutes' }],
+    ['habittracker://log?name=yoga&duration=PT20M', { type: 'log', text: 'yoga 20 minutes' }],
+    ['habittracker://log?habit=morning+run&minutes=30', { type: 'log', text: 'morning run 30 minutes' }],
     ['habittracker://log?name=yoga', { type: 'log', text: 'yoga' }],
     ['habittracker://log', { type: 'open', feature: 'quicklog' }],
     ['HabitTracker://OPEN?feature=quick_log', { type: 'open', feature: 'quicklog' }],
@@ -39,12 +44,23 @@ describe('parseAppLink', () => {
 describe('resolveAppLink', () => {
   const habits = [YOGA, RUN];
 
-  it('opens quick log or home for open links', () => {
+  it('opens quick log, add-habit, or home for open links', () => {
     expect(resolveAppLink({ type: 'open', feature: 'quicklog' }, habits, 3)).toEqual({
       screen: 'quicklog',
       linkId: 3,
     });
     expect(resolveAppLink({ type: 'open', feature: 'home' }, habits, 3)).toEqual({ screen: 'home' });
+    expect(resolveAppLink({ type: 'open', feature: 'add' }, habits, 4)).toEqual({
+      screen: 'home',
+      openAdd: true,
+      linkId: 4,
+    });
+    expect(resolveAppLink({ type: 'add', name: 'Meditation' }, habits, 5)).toEqual({
+      screen: 'home',
+      openAdd: true,
+      addName: 'Meditation',
+      linkId: 5,
+    });
   });
 
   it('opens a habit by id, name or keyword, else home', () => {
@@ -68,5 +84,14 @@ describe('resolveAppLink', () => {
       initialText: 'yoga 20 minutes',
       linkId: 2,
     });
+  });
+});
+
+describe('isoDurationToMinutes', () => {
+  it('parses ISO-8601 durations and bare minute counts', () => {
+    expect(isoDurationToMinutes('PT15M')).toBe(15);
+    expect(isoDurationToMinutes('PT1H30M')).toBe(90);
+    expect(isoDurationToMinutes('20')).toBe(20);
+    expect(isoDurationToMinutes('yesterday')).toBeUndefined();
   });
 });

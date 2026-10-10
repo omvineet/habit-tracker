@@ -40,6 +40,9 @@ export default function App() {
         <HomeScreen
           onOpenHabit={(habitId) => setRoute({ screen: 'detail', habitId })}
           onQuickLog={() => setRoute({ screen: 'quicklog' })}
+          openAdd={route.openAdd}
+          addName={route.addName}
+          linkId={route.linkId}
         />
       )}
       {route.screen === 'detail' && (
